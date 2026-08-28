@@ -40,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uz" suppressHydrationWarning className={`${playfair.variable} ${jakarta.variable}`}>
-      <body className="antialiased min-h-screen flex flex-col justify-between selection:bg-[#b88a44] selection:text-white">
+    <html lang="uz" suppressHydrationWarning className={`dark ${playfair.variable} ${jakarta.variable}`}>
+      <body className="antialiased min-h-screen bg-[#07110c] text-white flex flex-col justify-between selection:bg-[#b88a44] selection:text-white">
         <LanguageProvider>
           <ThemeProvider>
             <BookingProvider>

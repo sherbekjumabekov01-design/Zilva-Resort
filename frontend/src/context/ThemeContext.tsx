@@ -1,11 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useContext, useEffect } from 'react';
 
 interface ThemeContextType {
-  theme: Theme;
+  theme: 'dark';
   toggleTheme: () => void;
   isDark: boolean;
 }
@@ -13,34 +11,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem('zilva_theme') as Theme | null;
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    } else {
-      setTheme('light');
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('zilva_theme', 'dark');
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme: Theme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('zilva_theme', nextTheme);
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme: 'dark', toggleTheme: () => {}, isDark: true }}>
       {children}
     </ThemeContext.Provider>
   );

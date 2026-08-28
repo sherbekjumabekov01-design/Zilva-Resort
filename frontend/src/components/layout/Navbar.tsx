@@ -6,8 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Menu,
   X,
-  Sun,
-  Moon,
   Globe,
   ChevronDown,
   ChevronRight,
@@ -17,19 +15,16 @@ import {
 } from 'lucide-react';
 import { siteSettings } from '@/data/site-settings';
 import { useBooking } from '@/context/BookingContext';
-import { useTheme } from '@/context/ThemeContext';
-import { useLanguage, Language } from '@/context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [isWinter, setIsWinter] = useState(true);
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
   const { openBookingModal } = useBooking();
-  const { toggleTheme, isDark } = useTheme();
   const { lang, setLang, t } = useLanguage();
 
   const isHomePage = pathname === '/';
@@ -93,7 +88,6 @@ export default function Navbar() {
   ];
 
   const bookingBtnText = t.nav.bookNow;
-  const seasonText = isWinter ? t.nav.winter : t.nav.summer;
 
   return (
     <>
@@ -150,36 +144,6 @@ export default function Navbar() {
 
           {/* 3. Right: Action Controls */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-5">
-            {/* Season Pill Switch (Winter / Summer) */}
-            <button
-              onClick={() => setIsWinter(!isWinter)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-300 shadow-sm hover:opacity-95 ${
-                isWinter ? 'bg-[#0084d6] text-white' : 'bg-emerald-600 text-white'
-              }`}
-              title={isWinter ? "Qishki rejim (O'zgartirish uchun bosing)" : "Yozgi rejim (O'zgartirish uchun bosing)"}
-            >
-              <span className="pl-1 text-[10.5px]">{seasonText}</span>
-              <span
-                className={`w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-md ${
-                  isWinter ? 'translate-x-0' : '-translate-x-0'
-                }`}
-              />
-            </button>
-
-            {/* Sun / Theme Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-              title={isDark ? "Yorug' rejim" : "Tungi rejim"}
-              aria-label="Mavzuni o'zgartirish"
-            >
-              {isDark ? (
-                <Moon className="w-4 h-4 text-amber-200" />
-              ) : (
-                <Sun className="w-4 h-4 text-white" />
-              )}
-            </button>
-
             {/* Globe Language Selector Dropdown */}
             <div className="relative" ref={langDropdownRef}>
               <button
@@ -226,26 +190,6 @@ export default function Navbar() {
 
           {/* 4. Mobile Controls */}
           <div className="flex items-center gap-2.5 lg:hidden">
-            {/* Mobile Season switch */}
-            <button
-              onClick={() => setIsWinter(!isWinter)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                isWinter ? 'bg-[#0084d6] text-white' : 'bg-emerald-600 text-white'
-              }`}
-            >
-              <span>{seasonText}</span>
-              <span className="w-3 h-3 rounded-full bg-white" />
-            </button>
-
-            {/* Mobile Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 text-white/90 rounded-full bg-white/10"
-              aria-label="Theme toggle"
-            >
-              {isDark ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-            </button>
-
             {/* Mobile Booking Button */}
             <button
               onClick={() => openBookingModal()}
