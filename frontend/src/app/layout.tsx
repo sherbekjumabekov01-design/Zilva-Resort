@@ -7,6 +7,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BookingModal from '@/components/booking/BookingModal';
+import AiConciergeChat from '@/components/chat/AiConciergeChat';
 import { siteSettings } from '@/data/site-settings';
 
 const playfair = Playfair_Display({
@@ -51,6 +52,7 @@ export default function RootLayout({
               </main>
               <Footer />
               <BookingModal />
+              <AiConciergeChat />
             </BookingProvider>
           </ThemeProvider>
         </LanguageProvider>

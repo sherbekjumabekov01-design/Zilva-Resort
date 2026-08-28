@@ -15,6 +15,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useBooking } from '@/context/BookingContext';
 import { siteSettings } from '@/data/site-settings';
 import RoomCard from '@/components/rooms/RoomCard';
+import RoomAvailabilityCalendar from '@/components/rooms/RoomAvailabilityCalendar';
 
 const iconMap: Record<string, any> = {
   Wifi, Tv, Snowflake, Coffee, Mountain, Flame, Bath, ShieldCheck, Sun, Sparkles, Shirt, Bell
@@ -197,8 +198,11 @@ export default function RoomDetailPage() {
 
         {/* Content Details & Sticky Reservation Box */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-          {/* Left Column: Description, Amenities & Rules */}
+          {/* Left Column: Calendar, Description, Amenities & Rules */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Live Availability Calendar */}
+            <RoomAvailabilityCalendar room={room} />
+
             {/* Description */}
             <div className="glass-card p-8 rounded-3xl shadow-sm space-y-4">
               <h2 className="text-2xl font-serif font-bold text-[#18221b]">

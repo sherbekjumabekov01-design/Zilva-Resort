@@ -8,6 +8,7 @@ import { submitBookingRequest } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { siteSettings } from '@/data/site-settings';
 import { useLanguage } from '@/context/LanguageContext';
+import PaymentCheckoutModal from '@/components/payment/PaymentCheckoutModal';
 
 export default function BookingModal() {
   const { isOpen, selectedRoomId, initialDates, closeBookingModal } = useBooking();
@@ -27,6 +28,7 @@ export default function BookingModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -155,32 +157,66 @@ export default function BookingModal() {
         {/* Modal Body */}
         <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
           {isSuccess ? (
-            <div className="text-center py-8 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
+            <div className="text-center py-6 space-y-5">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mx-auto flex items-center justify-center animate-in zoom-in-90 duration-200">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-serif font-bold text-[#1b382b] dark:text-white">
-                {t.modal.successTitle}
-              </h3>
-              <p className="text-sm text-[#5e6962] dark:text-white/80 max-w-md mx-auto leading-relaxed">
-                {t.modal.successDesc}
-              </p>
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-[#1b382b] dark:text-white">
+                  {t.modal.successTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-[#5e6962] dark:text-white/80 max-w-md mx-auto leading-relaxed mt-1">
+                  {t.modal.successDesc}
+                </p>
+              </div>
 
-              <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+              {/* Online Payment Card Promo */}
+              <div className="p-5 rounded-2xl bg-[#12241b] text-white border border-[#d8aa62]/40 shadow-xl max-w-md mx-auto text-left space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-[#d8aa62] uppercase tracking-wider font-semibold">100% Kafolatlangan Band Qilish</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">0% Komissiya</span>
+                </div>
+                <p className="text-xs text-white/80 leading-relaxed font-light">
+                  Xonangiz boshqa mehmonga berib yuborilmasligi uchun hoziroq Click, Payme yoki Uzum orqali 20% avans to‘lab qo‘yishingiz mumkin.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(true)}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#b88a44] to-[#c79a55] hover:from-[#a77a35] hover:to-[#b88a44] text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Onlayn To‘lovni Boshlash (Click / Payme)</span>
+                </button>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={closeBookingModal}
-                  className="px-6 py-2.5 rounded-full bg-[#1b382b] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#12281e] transition-colors"
+                  className="px-6 py-2.5 rounded-full bg-white/10 dark:bg-white/15 text-white text-xs font-semibold uppercase tracking-wider hover:bg-white/20 transition-colors"
                 >
                   {t.modal.close}
                 </button>
                 <a
                   href={`tel:${siteSettings.phone}`}
-                  className="px-6 py-2.5 rounded-full bg-[#f0ebe1] text-[#1b382b] text-xs font-semibold uppercase tracking-wider hover:bg-[#dfd8cb] transition-colors flex items-center justify-center gap-2"
+                  className="px-6 py-2.5 rounded-full bg-[#1b382b] text-[#d8aa62] text-xs font-semibold uppercase tracking-wider hover:bg-[#12281e] transition-colors flex items-center justify-center gap-2"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>{siteSettings.phone}</span>
                 </a>
               </div>
+
+              <PaymentCheckoutModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                bookingDetails={{
+                  roomName: currentRoom.name,
+                  fullName,
+                  phone,
+                  checkIn,
+                  checkOut,
+                  totalAmount: estimatedTotal
+                }}
+              />
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">

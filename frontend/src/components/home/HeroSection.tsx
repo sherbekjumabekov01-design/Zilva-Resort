@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Calendar, ArrowRight, Sparkles } from 'lucide-react';
 import { useBooking } from '@/context/BookingContext';
 import { useLanguage } from '@/context/LanguageContext';
+import WeatherWidget from '@/components/weather/WeatherWidget';
 
 export default function HeroSection() {
   const { openBookingModal } = useBooking();
@@ -31,10 +32,13 @@ export default function HeroSection() {
 
       {/* Hero Content */}
       <div className="resort-container relative z-10 text-center max-w-4xl mx-auto space-y-6">
-        {/* Top Tagline Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#d8aa62] text-xs font-semibold uppercase tracking-[0.2em] shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{t.hero.badge}</span>
+        {/* Top Badges: Tagline & Live Weather */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#d8aa62] text-xs font-semibold uppercase tracking-[0.2em] shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{t.hero.badge}</span>
+          </div>
+          <WeatherWidget variant="badge" />
         </div>
 
         {/* Main Title */}
