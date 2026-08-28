@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { Mountain, Phone, Mail, MapPin, Send, Clock, ShieldCheck, Compass } from 'lucide-react';
+import { Mountain, Phone, Mail, MapPin, Send, Clock, ShieldCheck } from 'lucide-react';
 import { siteSettings } from '@/data/site-settings';
+import { useLanguage } from '@/context/LanguageContext';
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -22,8 +25,19 @@ function FacebookIcon({ className }: { className?: string }) {
 }
 
 export default function Footer() {
+  const { t, lang } = useLanguage();
+
+  const footerLinks = [
+    { href: '/', label: t.nav.home },
+    { href: '/rooms', label: t.nav.rooms },
+    { href: '/restaurant', label: t.nav.restaurant },
+    { href: '/spa', label: t.nav.spa },
+    { href: '/activities', label: t.nav.activities },
+    { href: '/contact', label: t.nav.contact }
+  ];
+
   return (
-    <footer className="bg-[#12241b] text-white border-t border-white/10 pt-16 pb-10">
+    <footer className="bg-[#12241b] dark:bg-[#060e0a] text-white border-t border-white/10 pt-16 pb-10">
       <div className="resort-container">
         {/* Top Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
@@ -43,7 +57,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-xs text-white/70 leading-relaxed">
-              {siteSettings.shortDesc}
+              {t.footer.desc}
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
@@ -79,17 +93,17 @@ export default function Footer() {
           {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="font-serif text-lg font-semibold text-[#d8aa62] tracking-wide">
-              Bo'limlar
+              {t.footer.quickLinks}
             </h3>
             <ul className="space-y-2.5 text-xs text-white/75">
-              {siteSettings.navLinks.map((link) => (
+              {footerLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
                     className="hover:text-[#d8aa62] transition-colors flex items-center gap-2 group"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#d8aa62]/50 group-hover:bg-[#d8aa62] transition-colors" />
-                    <span>{link.title}</span>
+                    <span>{link.label}</span>
                   </Link>
                 </li>
               ))}
@@ -99,7 +113,7 @@ export default function Footer() {
                   className="text-white/40 hover:text-white/80 transition-colors flex items-center gap-2"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                  <span>Admin Panel</span>
+                  <span>{t.nav.admin} Panel</span>
                 </Link>
               </li>
             </ul>
@@ -108,28 +122,25 @@ export default function Footer() {
           {/* Working Hours & Highlights */}
           <div className="space-y-4">
             <h3 className="font-serif text-lg font-semibold text-[#d8aa62] tracking-wide">
-              Ish Tartibi
+              {t.footer.workingHours}
             </h3>
             <ul className="space-y-3 text-xs text-white/75">
               <li className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#d8aa62] shrink-0 mt-0.5" />
                 <div>
-                  <span className="block text-white font-medium">Qabulxona (Reception):</span>
-                  <span>{siteSettings.workingHours.reception}</span>
+                  <span>{t.footer.reception}</span>
                 </div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#d8aa62] shrink-0 mt-0.5" />
                 <div>
-                  <span className="block text-white font-medium">Panoramik Restoran:</span>
-                  <span>{siteSettings.workingHours.restaurant}</span>
+                  <span>{t.footer.restaurant}</span>
                 </div>
               </li>
               <li className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#d8aa62] shrink-0 mt-0.5" />
                 <div>
-                  <span className="block text-white font-medium">SPA & Isitiladigan Hovuz:</span>
-                  <span>{siteSettings.workingHours.spa}</span>
+                  <span>{t.footer.spa}</span>
                 </div>
               </li>
             </ul>
@@ -138,7 +149,7 @@ export default function Footer() {
           {/* Contact Details */}
           <div className="space-y-4">
             <h3 className="font-serif text-lg font-semibold text-[#d8aa62] tracking-wide">
-              Bog'lanish
+              {t.footer.contacts}
             </h3>
             <ul className="space-y-3 text-xs text-white/75">
               <li className="flex items-start gap-2.5">
@@ -157,10 +168,6 @@ export default function Footer() {
                   {siteSettings.email}
                 </a>
               </li>
-              <li className="flex items-center gap-2.5 pt-1">
-                <Compass className="w-4 h-4 text-[#d8aa62] shrink-0" />
-                <span>Chorvoq suv omboridan 25 daqiqalik masofada</span>
-              </li>
             </ul>
           </div>
         </div>
@@ -169,14 +176,12 @@ export default function Footer() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-4">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#d8aa62]" />
-            <span>© {new Date().getFullYear()} Zilva Resort & Spa. Barcha huquqlar himoyalangan.</span>
+            <span>© {new Date().getFullYear()} Zilva Resort & Spa. {t.footer.rights}</span>
           </div>
           <div className="flex items-center gap-6">
-            <span>Chimgan tog'lari</span>
+            <Link href="/privacy" className="hover:text-white transition-colors">{t.footer.privacy}</Link>
             <span>•</span>
-            <span>Archazor nafasi</span>
-            <span>•</span>
-            <span>Premium servis</span>
+            <Link href="/terms" className="hover:text-white transition-colors">{t.footer.terms}</Link>
           </div>
         </div>
       </div>

@@ -1,17 +1,21 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { UtensilsCrossed, Sparkles, Clock, ArrowRight } from 'lucide-react';
+import { UtensilsCrossed, Clock, ArrowRight } from 'lucide-react';
 import { menuItems } from '@/data/restaurant';
 import { formatCurrency } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function RestaurantHighlight() {
+  const { t, lang } = useLanguage();
   const specials = menuItems.filter(m => m.isChefSpecial).slice(0, 3);
 
   return (
-    <section className="py-24 bg-[#f8f5ee] relative">
+    <section className="py-24 bg-[#f8f5ee] dark:bg-[#07110c] relative">
       <div className="resort-container space-y-16">
         {/* Banner with Restaurant Image */}
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-[#dfd8cb] min-h-[440px] flex items-center p-8 sm:p-14 text-white">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-[#dfd8cb] dark:border-white/10 min-h-[440px] flex items-center p-8 sm:p-14 text-white">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
@@ -23,17 +27,15 @@ export default function RestaurantHighlight() {
           <div className="relative z-10 max-w-xl space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#d8aa62] text-xs font-semibold uppercase tracking-wider">
               <UtensilsCrossed className="w-3.5 h-3.5" />
-              <span>Gastronomiya & Restoran</span>
+              <span>{t.restaurant.badge}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
-              Tog' Panoramasi va <br />
-              <span className="gold-gradient-text italic font-serif">Nafis Taomlar</span> San'ati
+              {t.restaurant.heading}
             </h2>
 
             <p className="text-sm text-white/80 font-light leading-relaxed">
-              Mahalliy yangi mahsulotlar, qarsildoq tog' kaboblari, nozik Yevropa taomlari va mualliflik desertlari.
-              Ochiq terassada tog' shabadasi ostida nonushta va kechki ovqat unutilmas xotiraga aylanadi.
+              {t.restaurant.desc}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
@@ -41,13 +43,13 @@ export default function RestaurantHighlight() {
                 href="/restaurant"
                 className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-gradient-to-r from-[#b88a44] to-[#c79a55] hover:from-[#a77a35] hover:to-[#b88a44] text-white text-xs font-semibold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2"
               >
-                <span>Restoran Menyusini Ko'rish</span>
+                <span>{t.restaurant.menuBtn}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
               <div className="flex items-center gap-2 text-xs text-white/80">
                 <Clock className="w-4 h-4 text-[#d8aa62]" />
-                <span>Har kuni: 07:30 – 23:00</span>
+                <span>07:30 – 23:00</span>
               </div>
             </div>
           </div>

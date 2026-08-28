@@ -3,6 +3,7 @@ import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { BookingProvider } from '@/context/BookingContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BookingModal from '@/components/booking/BookingModal';
@@ -41,16 +42,18 @@ export default function RootLayout({
   return (
     <html lang="uz" suppressHydrationWarning className={`${playfair.variable} ${jakarta.variable}`}>
       <body className="antialiased min-h-screen flex flex-col justify-between selection:bg-[#b88a44] selection:text-white">
-        <ThemeProvider>
-          <BookingProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-            <BookingModal />
-          </BookingProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <BookingProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+              <BookingModal />
+            </BookingProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

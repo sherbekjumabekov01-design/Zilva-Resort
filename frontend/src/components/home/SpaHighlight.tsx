@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { Waves, Flame, Sparkles, Check, ArrowRight } from 'lucide-react';
-import { spaInfo, spaServices } from '@/data/spa';
+import { Sparkles, Check, ArrowRight } from 'lucide-react';
+import { spaServices } from '@/data/spa';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SpaHighlight() {
+  const { t, lang } = useLanguage();
+
   return (
     <section className="py-24 bg-[#12241b] text-white relative overflow-hidden">
       {/* Subtle Background Pattern */}
@@ -15,24 +20,22 @@ export default function SpaHighlight() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-[#d8aa62] text-xs font-semibold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Wellness & Relax</span>
+              <span>{t.spa.badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight">
-              Yil Bo'yi 29°C Isitiladigan <br />
-              <span className="gold-gradient-text font-serif italic">Panoramik SPA & Hovuz</span>
+              {t.spa.heading}
             </h2>
           </div>
 
           <div className="space-y-4 lg:pl-6">
             <p className="text-sm text-white/75 font-light leading-relaxed">
-              Tog' cho'qqilarini tomosha qilib suzing, Fin yog'och saunasida charchoqni chiqaring
-              yoki sharqona marmar hammomida teran relaksatsiyadan rohatlaning.
+              {t.spa.desc}
             </p>
             <Link
               href="/spa"
               className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#d8aa62] hover:text-white font-semibold transition-colors group"
             >
-              <span>Barcha SPA xizmatlari va narxlar</span>
+              <span>{t.spa.moreBtn}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

@@ -1,20 +1,27 @@
+'use client';
+
 import React from 'react';
 import { Star, Quote, Sparkles } from 'lucide-react';
 import { reviewsData } from '@/data/reviews';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ReviewsSection() {
+  const { t } = useLanguage();
+
   return (
-    <section className="py-24 bg-[#f8f5ee] relative">
+    <section className="py-24 bg-[#f8f5ee] dark:bg-[#091610] relative">
       <div className="resort-container space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1b382b]/10 text-[#1b382b] text-xs font-semibold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1b382b]/10 dark:bg-white/10 text-[#1b382b] dark:text-[#d8aa62] text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-[#b88a44]" />
-            <span>Mehmonlarimiz Fikrlari</span>
+            <span>{t.reviews.badge}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#18221b]">
-            Samimiy Xotiralar va <br />
-            <span className="italic font-serif text-[#1b382b]">Yuqori Baholar</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#18221b] dark:text-white">
+            {t.reviews.heading}
           </h2>
+          <p className="text-xs sm:text-sm text-[#5e6962] dark:text-white/70 font-light">
+            {t.reviews.desc}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

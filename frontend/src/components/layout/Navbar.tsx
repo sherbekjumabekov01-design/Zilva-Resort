@@ -18,11 +18,11 @@ import {
 import { siteSettings } from '@/data/site-settings';
 import { useBooking } from '@/context/BookingContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage, Language } from '@/context/LanguageContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState<'UZ' | 'RU' | 'EN'>('RU');
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [isWinter, setIsWinter] = useState(true);
   const langDropdownRef = useRef<HTMLDivElement>(null);
@@ -30,6 +30,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { openBookingModal } = useBooking();
   const { toggleTheme, isDark } = useTheme();
+  const { lang, setLang, t } = useLanguage();
 
   const isHomePage = pathname === '/';
 
@@ -67,36 +68,32 @@ export default function Navbar() {
   const navItems = [
     {
       href: '/',
-      label: currentLang === 'RU' ? 'Главная' : currentLang === 'EN' ? 'Home' : 'Bosh sahifa'
+      label: t.nav.home
     },
     {
       href: '/rooms',
-      label: currentLang === 'RU' ? 'Номера' : currentLang === 'EN' ? 'Rooms' : 'Xonalar'
+      label: t.nav.rooms
     },
     {
       href: '/restaurant',
-      label: currentLang === 'RU' ? 'Ресторан' : currentLang === 'EN' ? 'Restaurant' : 'Restoran'
+      label: t.nav.restaurant
     },
     {
       href: '/spa',
-      label: currentLang === 'RU' ? 'SPA и здоровье' : currentLang === 'EN' ? 'SPA & Wellness' : 'SPA va salomatlik'
+      label: t.nav.spa
     },
     {
       href: '/activities',
-      label: currentLang === 'RU' ? 'Досуг' : currentLang === 'EN' ? 'Leisure' : 'Faoliyatlar'
+      label: t.nav.activities
     },
     {
       href: '/contact',
-      label: currentLang === 'RU' ? 'Контакты' : currentLang === 'EN' ? 'Contacts' : 'Aloqa'
+      label: t.nav.contact
     }
   ];
 
-  const bookingBtnText =
-    currentLang === 'RU' ? 'Забронировать' : currentLang === 'EN' ? 'Book Now' : 'Bron qilish';
-
-  const seasonText = isWinter
-    ? currentLang === 'RU' ? 'ЗИМА' : currentLang === 'EN' ? 'WINTER' : 'QISH'
-    : currentLang === 'RU' ? 'ЛЕТО' : currentLang === 'EN' ? 'SUMMER' : 'YOZ';
+  const bookingBtnText = t.nav.bookNow;
+  const seasonText = isWinter ? t.nav.winter : t.nav.summer;
 
   return (
     <>
@@ -191,27 +188,27 @@ export default function Navbar() {
                 aria-label="Tilni tanlash"
               >
                 <Globe className="w-4 h-4 text-white/90" />
-                <span className="text-[11px] font-medium">{currentLang}</span>
+                <span className="text-[11px] font-medium">{lang}</span>
                 <ChevronDown className="w-3 h-3 text-white/70" />
               </button>
 
               {langMenuOpen && (
                 <div className="absolute right-0 mt-2 w-36 bg-[#0e2118]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                  {(['UZ', 'RU', 'EN'] as const).map((lang) => (
+                  {(['UZ', 'RU', 'EN'] as const).map((l) => (
                     <button
-                      key={lang}
+                      key={l}
                       onClick={() => {
-                        setCurrentLang(lang);
+                        setLang(l);
                         setLangMenuOpen(false);
                       }}
                       className={`w-full text-left px-3 py-1.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
-                        currentLang === lang
+                        lang === l
                           ? 'bg-[#d8aa62]/20 text-[#d8aa62] font-bold'
                           : 'text-white/80 hover:bg-white/10 hover:text-white'
                       }`}
                     >
-                      <span>{lang === 'UZ' ? "O'zbekcha" : lang === 'RU' ? 'Русский' : 'English'}</span>
-                      <span className="text-[10px] font-bold opacity-60">{lang}</span>
+                      <span>{l === 'UZ' ? "O'zbekcha" : l === 'RU' ? 'Русский' : 'English'}</span>
+                      <span className="text-[10px] font-bold opacity-60">{l}</span>
                     </button>
                   ))}
                 </div>
@@ -322,15 +319,15 @@ export default function Navbar() {
                 <span>Tilni tanlash:</span>
               </span>
               <div className="flex items-center gap-1">
-                {(['UZ', 'RU', 'EN'] as const).map((lang) => (
+                {(['UZ', 'RU', 'EN'] as const).map((l) => (
                   <button
-                    key={lang}
-                    onClick={() => setCurrentLang(lang)}
+                    key={l}
+                    onClick={() => setLang(l)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                      currentLang === lang ? 'bg-white/25 text-white' : 'text-white/60'
+                      lang === l ? 'bg-white/25 text-white' : 'text-white/60'
                     }`}
                   >
-                    {lang}
+                    {l}
                   </button>
                 ))}
               </div>
