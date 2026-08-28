@@ -12,7 +12,9 @@ builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // Configure Rate Limiting
 builder.Services.AddRateLimiter(options =>

@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<BookingRequest> BookingRequests => Set<BookingRequest>();
     public DbSet<ContactRequest> ContactRequests => Set<ContactRequest>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

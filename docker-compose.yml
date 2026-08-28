@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: zilva_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: zilva_resort
+      POSTGRES_USER: zilva_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-zilva_secret_2026!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zilva_admin -d zilva_resort"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zilva_network
+
+  # 2. ASP.NET Core 10 Web API Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zilva_backend
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - UsePostgres=true
+      - ConnectionStrings__PostgreSqlConnection=Host=db;Port=5432;Database=zilva_resort;Username=zilva_admin;Password=${DB_PASSWORD:-zilva_secret_2026!}
+      - Telegram__BotToken=${TELEGRAM_BOT_TOKEN:-}
+      - Telegram__ChatId=${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - zilva_network
+
+  # 3. Next.js 16 Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zilva_frontend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=/api
+    depends_on:
+      - backend
+    networks:
+      - zilva_network
+
+  # 4. Nginx Reverse Proxy & SSL Gateway
+  nginx:
+    image: nginx:alpine
+    container_name: zilva_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - zilva_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  zilva_network:
+    driver: bridge

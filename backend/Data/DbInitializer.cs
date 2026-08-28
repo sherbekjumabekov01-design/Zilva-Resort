@@ -9,12 +9,32 @@ public static class DbInitializer
     {
         context.Database.EnsureCreated();
 
-        // Ensure AdminUsers table exists in existing database
+        // Ensure AdminUsers & AuditLogs tables exist in existing database
         try
         {
-            context.Database.ExecuteSqlRaw(@"CREATE TABLE IF NOT EXISTS ""AdminUsers"" (""Id"" INTEGER NOT NULL CONSTRAINT ""PK_AdminUsers"" PRIMARY KEY AUTOINCREMENT, ""Username"" TEXT NOT NULL, ""FullName"" TEXT NOT NULL, ""Password"" TEXT NOT NULL, ""PinCode"" TEXT NULL, ""Role"" TEXT NOT NULL, ""IsActive"" INTEGER NOT NULL, ""CreatedAt"" TEXT NOT NULL);");
+            context.Database.ExecuteSqlRaw(@"CREATE TABLE IF NOT EXISTS ""AdminUsers"" (""Id"" INTEGER NOT NULL CONSTRAINT ""PK_AdminUsers"" PRIMARY KEY AUTOINCREMENT, ""Username"" TEXT NOT NULL, ""FullName"" TEXT NOT NULL, ""Email"" TEXT NULL, ""Password"" TEXT NOT NULL, ""PinCode"" TEXT NULL, ""Role"" TEXT NOT NULL, ""IsActive"" INTEGER NOT NULL, ""LastLoginAt"" TEXT NULL, ""CreatedAt"" TEXT NOT NULL);");
+            context.Database.ExecuteSqlRaw(@"CREATE TABLE IF NOT EXISTS ""AuditLogs"" (""Id"" INTEGER NOT NULL CONSTRAINT ""PK_AuditLogs"" PRIMARY KEY AUTOINCREMENT, ""UserId"" INTEGER NULL, ""UserName"" TEXT NOT NULL, ""Action"" TEXT NOT NULL, ""EntityName"" TEXT NOT NULL, ""EntityId"" TEXT NULL, ""Details"" TEXT NULL, ""IpAddress"" TEXT NULL, ""Timestamp"" TEXT NOT NULL);");
+            
+            // Add missing columns if AdminUsers table already existed
+            try { context.Database.ExecuteSqlRaw(@"ALTER TABLE ""AdminUsers"" ADD COLUMN ""Email"" TEXT NULL;"); } catch { }
+            try { context.Database.ExecuteSqlRaw(@"ALTER TABLE ""AdminUsers"" ADD COLUMN ""LastLoginAt"" TEXT NULL;"); } catch { }
         }
         catch { }
+
+        // Seed initial audit log if empty
+        if (!context.AuditLogs.Any())
+        {
+            context.AuditLogs.Add(new AuditLog
+            {
+                UserName = "System",
+                Action = "SYSTEM_INITIALIZED",
+                EntityName = "Database",
+                Details = "Zilva Resort & Spa tizim va ma'lumotlar bazasi initsializatsiya qilindi.",
+                IpAddress = "127.0.0.1",
+                Timestamp = DateTime.UtcNow
+            });
+            context.SaveChanges();
+        }
 
         // Seed initial admin user if not exists
         if (!context.AdminUsers.Any())

@@ -390,4 +390,108 @@ export async function deleteAdminUser(id: number): Promise<{ success: boolean; m
   }
 }
 
+export interface AuditLogRecord {
+  id: number;
+  userId?: number;
+  userName: string;
+  action: string;
+  entityName: string;
+  entityId?: string;
+  details?: string;
+  ipAddress?: string;
+  timestamp: string;
+}
+
+export interface SystemStatsRecord {
+  totalRooms: number;
+  totalBookings: number;
+  pendingBookings: number;
+  confirmedBookings: number;
+  totalContacts: number;
+  unreadContacts: number;
+  activeAdmins: number;
+  totalRevenue: number;
+  occupancyRate: number;
+  averageDailyRate: number;
+}
+
+export async function fetchAdminStats(): Promise<SystemStatsRecord> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/stats`, { cache: 'no-store' });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {
+    // Fallback
+  }
+  return {
+    totalRooms: 6,
+    totalBookings: localBookings.length,
+    pendingBookings: localBookings.filter(b => b.status === 'New').length,
+    confirmedBookings: localBookings.filter(b => b.status === 'Confirmed').length,
+    totalContacts: localContacts.length,
+    unreadContacts: localContacts.filter(c => !c.isRead).length,
+    activeAdmins: localAdmins.filter(a => a.isActive).length,
+    totalRevenue: 5400000,
+    occupancyRate: 67.5,
+    averageDailyRate: 2400000
+  };
+}
+
+export async function fetchAdminAuditLogs(): Promise<AuditLogRecord[]> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/audit-logs`, { cache: 'no-store' });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {
+    // Fallback
+  }
+  return [
+    {
+      id: 1,
+      userName: "admin",
+      action: "LOGIN",
+      entityName: "Auth",
+      details: "Bosh administrator tizimga muvaffaqiyatli kirdi.",
+      ipAddress: "127.0.0.1",
+      timestamp: new Date().toISOString()
+    },
+    {
+      id: 2,
+      userName: "System",
+      action: "SYSTEM_INITIALIZED",
+      entityName: "Database",
+      details: "Zilva Resort & Spa xonalar va sozlamalar bazasi yuklandi.",
+      ipAddress: "127.0.0.1",
+      timestamp: new Date(Date.now() - 3600000).toISOString()
+    }
+  ];
+}
+
+export async function updateAdminUser(id: number, data: { fullName?: string; email?: string; password?: string; pinCode?: string; role?: string }): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (res.ok) {
+      return { success: true, message: result.message || "Foydalanuvchi yangilandi." };
+    }
+    return { success: false, message: result.message || "Xatolik yuz berdi." };
+  } catch {
+    const user = localAdmins.find(u => u.id === id);
+    if (user) {
+      if (data.fullName) user.fullName = data.fullName;
+      if (data.role) user.role = data.role;
+      if (data.pinCode) user.pinCode = data.pinCode;
+      return { success: true, message: "Foydalanuvchi yangilandi (Offline)." };
+    }
+    return { success: false, message: "Foydalanuvchi topilmadi." };
+  }
+}
+
+
 
