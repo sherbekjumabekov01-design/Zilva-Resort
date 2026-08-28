@@ -150,18 +150,18 @@ export default function Navbar() {
             {/* Eye / Dark Mode Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2.5 rounded-full border transition-all flex items-center justify-center ${
+              className={`w-8 h-8 rounded-full border transition-all flex items-center justify-center ${
                 isDark
-                  ? 'bg-[#b88a44] border-[#d8aa62] text-white shadow-lg shadow-[#b88a44]/30 scale-105'
+                  ? 'bg-[#b88a44] border-[#d8aa62] text-white shadow-md shadow-[#b88a44]/20'
                   : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
               }`}
               title={isDark ? "Yorug' rejimga o'tish (Oqartirish)" : "Ko'zcha / Tungi rejim (Qoraytirish)"}
               aria-label="Ko'zcha rejimini yoqish/o'chirish"
             >
               {isDark ? (
-                <Eye className="w-4 h-4 text-amber-100" />
+                <Eye className="w-3.5 h-3.5 text-amber-100" />
               ) : (
-                <EyeOff className="w-4 h-4 text-[#d8aa62]" />
+                <EyeOff className="w-3.5 h-3.5 text-[#d8aa62]" />
               )}
             </button>
 
@@ -197,13 +197,13 @@ export default function Navbar() {
             {/* Mobile Eye Toggle Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-full border transition-all ${
+              className={`w-7 h-7 flex items-center justify-center rounded-full border transition-all ${
                 isDark ? 'bg-[#b88a44] border-[#d8aa62] text-white' : 'bg-white/10 border-white/20 text-white'
               }`}
               title="Ko'zcha rejimi"
               aria-label="Ko'zcha rejimi"
             >
-              {isDark ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 text-[#d8aa62]" />}
+              {isDark ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-[#d8aa62]" />}
             </button>
 
             {/* Mobile Quick Book Button */}
