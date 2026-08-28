@@ -13,15 +13,20 @@ public class AdminController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IAuditLogService _auditLog;
+    private readonly IPasswordHasherService _passwordHasher;
 
-    public AdminController(AppDbContext context, IAuditLogService auditLog)
+    public AdminController(
+        AppDbContext context,
+        IAuditLogService auditLog,
+        IPasswordHasherService passwordHasher)
     {
         _context = context;
         _auditLog = auditLog;
+        _passwordHasher = passwordHasher;
     }
 
     [HttpGet("stats")]
-    public async Task<ActionResult> GetStats()
+    public async Task<ActionResult<ApiResponse<object>>> GetStats()
     {
         var totalRooms = await _context.Rooms.CountAsync();
         var totalBookings = await _context.BookingRequests.CountAsync();
@@ -48,7 +53,7 @@ public class AdminController : ControllerBase
 
         var occupancyRate = totalRooms > 0 ? Math.Min(100, Math.Round((double)confirmedBookings / (totalRooms * 3) * 100, 1)) : 0;
 
-        return Ok(new
+        return Ok(ApiResponse<object>.Ok(new
         {
             totalRooms,
             totalBookings,
@@ -60,35 +65,63 @@ public class AdminController : ControllerBase
             totalRevenue,
             occupancyRate,
             averageDailyRate = confirmedBookings > 0 ? Math.Round(totalRevenue / confirmedBookings) : 2400000m
-        });
+        }));
     }
 
     [HttpGet("audit-logs")]
-    public async Task<ActionResult> GetAuditLogs([FromQuery] int limit = 50)
+    public async Task<ActionResult<PagedResponse<AuditLog>>> GetAuditLogs(
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var logs = await _context.AuditLogs
-            .AsNoTracking()
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var query = _context.AuditLogs.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim().ToLower();
+            query = query.Where(a => a.UserName.ToLower().Contains(s) || a.Action.ToLower().Contains(s) || a.EntityName.ToLower().Contains(s));
+        }
+
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
             .OrderByDescending(a => a.Timestamp)
-            .Take(limit)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return Ok(logs);
+        return Ok(new PagedResponse<AuditLog>(items, totalCount, page, pageSize, totalPages));
     }
 
     [HttpGet("booking-requests")]
-    public async Task<ActionResult<IEnumerable<BookingRequestDto>>> GetBookingRequests([FromQuery] string? status)
+    public async Task<ActionResult<PagedResponse<BookingRequestDto>>> GetBookingRequests(
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 15)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 15;
+
         var query = _context.BookingRequests
             .Include(b => b.Room)
             .AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(status))
+        if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
         {
             query = query.Where(b => b.Status.ToLower() == status.ToLower());
         }
 
-        var list = await query
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
             .OrderByDescending(b => b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(b => new BookingRequestDto(
                 b.Id,
                 b.FullName,
@@ -106,32 +139,43 @@ public class AdminController : ControllerBase
             ))
             .ToListAsync();
 
-        return Ok(list);
+        return Ok(new PagedResponse<BookingRequestDto>(items, totalCount, page, pageSize, totalPages));
     }
 
     [HttpPatch("booking-requests/{id}/status")]
-    public async Task<ActionResult> UpdateBookingStatus(int id, [FromBody] UpdateBookingStatusDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> UpdateBookingStatus(int id, [FromBody] UpdateBookingStatusDto dto)
     {
         var booking = await _context.BookingRequests.FindAsync(id);
         if (booking == null)
         {
-            return NotFound(new { message = "So'rov topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Bron so'rovi topilmadi."));
         }
 
+        var oldStatus = booking.Status;
         booking.Status = dto.Status;
         await _context.SaveChangesAsync();
 
-        await _auditLog.LogAsync("UPDATE_BOOKING_STATUS", "BookingRequest", id.ToString(), $"Status o'zgartirildi: {booking.Status} (Mehmon: {booking.FullName})");
+        await _auditLog.LogAsync("UPDATE_BOOKING_STATUS", "BookingRequest", id.ToString(), $"Status o'zgartirildi: {oldStatus} -> {booking.Status} (Mehmon: {booking.FullName})");
 
-        return Ok(new { message = "Status muvaffaqiyatli yangilandi.", status = booking.Status });
+        return Ok(ApiResponse<object>.Ok(new { status = booking.Status }, "Status muvaffaqiyatli yangilandi."));
     }
 
     [HttpGet("contact-requests")]
-    public async Task<ActionResult<IEnumerable<ContactRequestDto>>> GetContactRequests()
+    public async Task<ActionResult<PagedResponse<ContactRequestDto>>> GetContactRequests(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 15)
     {
-        var list = await _context.ContactRequests
-            .AsNoTracking()
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 15;
+
+        var query = _context.ContactRequests.AsNoTracking();
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
             .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ContactRequestDto(
                 c.Id,
                 c.FullName,
@@ -144,31 +188,31 @@ public class AdminController : ControllerBase
             ))
             .ToListAsync();
 
-        return Ok(list);
+        return Ok(new PagedResponse<ContactRequestDto>(items, totalCount, page, pageSize, totalPages));
     }
 
     [HttpPatch("contact-requests/{id}/read")]
-    public async Task<ActionResult> MarkContactAsRead(int id)
+    public async Task<ActionResult<ApiResponse<object>>> MarkContactAsRead(int id)
     {
         var contact = await _context.ContactRequests.FindAsync(id);
         if (contact == null)
         {
-            return NotFound(new { message = "Xabar topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Xabar topilmadi."));
         }
 
         contact.IsRead = true;
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Xabar o'qildi deb belgilandi." });
+        return Ok(ApiResponse<object>.Ok(new { isRead = true }, "Xabar o'qildi deb belgilandi."));
     }
 
     [HttpPatch("rooms/{id}/toggle-availability")]
-    public async Task<ActionResult> ToggleRoomAvailability(int id)
+    public async Task<ActionResult<ApiResponse<object>>> ToggleRoomAvailability(int id)
     {
         var room = await _context.Rooms.FindAsync(id);
         if (room == null)
         {
-            return NotFound(new { message = "Xona topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Xona topilmadi."));
         }
 
         room.IsAvailable = !room.IsAvailable;
@@ -176,23 +220,23 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("TOGGLE_ROOM_AVAILABILITY", "Room", id.ToString(), $"Xona {room.Name} holati: {(room.IsAvailable ? "Bandlikka ochiq" : "Yopiq")}");
 
-        return Ok(new { message = "Xona holati yangilandi.", isAvailable = room.IsAvailable });
+        return Ok(ApiResponse<object>.Ok(new { isAvailable = room.IsAvailable }, "Xona holati yangilandi."));
     }
 
     public record UpdateRoomPriceDto(decimal Price);
 
     [HttpPatch("rooms/{id}/price")]
-    public async Task<ActionResult> UpdateRoomPrice(int id, [FromBody] UpdateRoomPriceDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> UpdateRoomPrice(int id, [FromBody] UpdateRoomPriceDto dto)
     {
         var room = await _context.Rooms.FindAsync(id);
         if (room == null)
         {
-            return NotFound(new { message = "Xona topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Xona topilmadi."));
         }
 
         if (dto.Price <= 0)
         {
-            return BadRequest(new { message = "Narx musbat son bo'lishi kerak." });
+            return BadRequest(ApiResponse<object>.Fail("Narx musbat son bo'lishi kerak."));
         }
 
         var oldPrice = room.PricePerNight;
@@ -201,7 +245,7 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("UPDATE_ROOM_PRICE", "Room", id.ToString(), $"Xona {room.Name} narxi o'zgartirildi: {oldPrice:N0} so'm -> {room.PricePerNight:N0} so'm");
 
-        return Ok(new { message = "Narx muvaffaqiyatli yangilandi.", price = room.PricePerNight });
+        return Ok(ApiResponse<object>.Ok(new { price = room.PricePerNight }, "Narx muvaffaqiyatli yangilandi."));
     }
 
     // --- Admin Users Management (RBAC) ---
@@ -232,18 +276,18 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("users")]
-    public async Task<ActionResult> CreateAdminUser([FromBody] CreateAdminUserDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> CreateAdminUser([FromBody] CreateAdminUserDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
         {
-            return BadRequest(new { message = "Login (username) va parol kiritilishi shart." });
+            return BadRequest(ApiResponse<object>.Fail("Login (username) va parol kiritilishi shart."));
         }
 
         var usernameClean = dto.Username.Trim();
         var exists = await _context.AdminUsers.AnyAsync(u => u.Username.ToLower() == usernameClean.ToLower());
         if (exists)
         {
-            return BadRequest(new { message = "Bu login (username) allaqachon mavjud." });
+            return BadRequest(ApiResponse<object>.Fail("Bu login (username) allaqachon mavjud."));
         }
 
         var newUser = new AdminUser
@@ -251,7 +295,7 @@ public class AdminController : ControllerBase
             Username = usernameClean,
             FullName = string.IsNullOrWhiteSpace(dto.FullName) ? usernameClean : dto.FullName.Trim(),
             Email = dto.Email?.Trim(),
-            Password = dto.Password,
+            Password = _passwordHasher.HashPassword(dto.Password),
             PinCode = string.IsNullOrWhiteSpace(dto.PinCode) ? "7788" : dto.PinCode.Trim(),
             Role = string.IsNullOrWhiteSpace(dto.Role) ? "Manager" : dto.Role.Trim(),
             IsActive = true,
@@ -263,35 +307,31 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("CREATE_USER", "AdminUser", newUser.Id.ToString(), $"Yangi foydalanuvchi yaratildi: {newUser.Username} (Rol: {newUser.Role})");
 
-        return Ok(new
+        return StatusCode(StatusCodes.Status201Created, ApiResponse<object>.Ok(new
         {
-            message = "Yangi administrator muvaffaqiyatli qo'shildi.",
-            user = new
-            {
-                newUser.Id,
-                newUser.Username,
-                newUser.FullName,
-                newUser.Email,
-                newUser.PinCode,
-                newUser.Role,
-                newUser.IsActive,
-                newUser.CreatedAt
-            }
-        });
+            newUser.Id,
+            newUser.Username,
+            newUser.FullName,
+            newUser.Email,
+            newUser.PinCode,
+            newUser.Role,
+            newUser.IsActive,
+            newUser.CreatedAt
+        }, "Yangi administrator muvaffaqiyatli qo'shildi."));
     }
 
     [HttpPut("users/{id}")]
-    public async Task<ActionResult> UpdateAdminUser(int id, [FromBody] UpdateAdminUserDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> UpdateAdminUser(int id, [FromBody] UpdateAdminUserDto dto)
     {
         var user = await _context.AdminUsers.FindAsync(id);
         if (user == null)
         {
-            return NotFound(new { message = "Foydalanuvchi topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Foydalanuvchi topilmadi."));
         }
 
         if (!string.IsNullOrWhiteSpace(dto.FullName)) user.FullName = dto.FullName.Trim();
         if (!string.IsNullOrWhiteSpace(dto.Email)) user.Email = dto.Email.Trim();
-        if (!string.IsNullOrWhiteSpace(dto.Password)) user.Password = dto.Password;
+        if (!string.IsNullOrWhiteSpace(dto.Password)) user.Password = _passwordHasher.HashPassword(dto.Password);
         if (!string.IsNullOrWhiteSpace(dto.PinCode)) user.PinCode = dto.PinCode.Trim();
         if (!string.IsNullOrWhiteSpace(dto.Role)) user.Role = dto.Role.Trim();
 
@@ -299,16 +339,16 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("UPDATE_USER", "AdminUser", id.ToString(), $"Foydalanuvchi {user.Username} ma'lumotlari tahrirlandi (Rol: {user.Role})");
 
-        return Ok(new { message = "Foydalanuvchi muvaffaqiyatli yangilandi.", user });
+        return Ok(ApiResponse<object>.Ok(user, "Foydalanuvchi muvaffaqiyatli yangilandi."));
     }
 
     [HttpPatch("users/{id}/toggle-status")]
-    public async Task<ActionResult> ToggleUserStatus(int id)
+    public async Task<ActionResult<ApiResponse<object>>> ToggleUserStatus(int id)
     {
         var user = await _context.AdminUsers.FindAsync(id);
         if (user == null)
         {
-            return NotFound(new { message = "Foydalanuvchi topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Foydalanuvchi topilmadi."));
         }
 
         user.IsActive = !user.IsActive;
@@ -316,22 +356,22 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("TOGGLE_USER_STATUS", "AdminUser", id.ToString(), $"Foydalanuvchi {user.Username} holati: {(user.IsActive ? "Faollashtirildi" : "Bloklandi")}");
 
-        return Ok(new { message = "Admin holati o'zgartirildi.", isActive = user.IsActive });
+        return Ok(ApiResponse<object>.Ok(new { isActive = user.IsActive }, "Admin holati o'zgartirildi."));
     }
 
     [HttpDelete("users/{id}")]
-    public async Task<ActionResult> DeleteAdminUser(int id)
+    public async Task<ActionResult<ApiResponse<object>>> DeleteAdminUser(int id)
     {
         var user = await _context.AdminUsers.FindAsync(id);
         if (user == null)
         {
-            return NotFound(new { message = "Foydalanuvchi topilmadi." });
+            return NotFound(ApiResponse<object>.Fail("Foydalanuvchi topilmadi."));
         }
 
         var totalAdmins = await _context.AdminUsers.CountAsync();
         if (totalAdmins <= 1)
         {
-            return BadRequest(new { message = "Tizimda kamida bitta admin foydalanuvchi qolishi kerak." });
+            return BadRequest(ApiResponse<object>.Fail("Tizimda kamida bitta admin foydalanuvchi qolishi kerak."));
         }
 
         var username = user.Username;
@@ -340,7 +380,6 @@ public class AdminController : ControllerBase
 
         await _auditLog.LogAsync("DELETE_USER", "AdminUser", id.ToString(), $"Foydalanuvchi {username} tizimdan o'chirildi.");
 
-        return Ok(new { message = "Administrator tizimdan o'chirildi." });
+        return Ok(ApiResponse<object>.Ok(new { id }, "Administrator tizimdan o'chirildi."));
     }
 }
-

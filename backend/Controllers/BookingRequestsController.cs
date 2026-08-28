@@ -14,91 +14,115 @@ public class BookingRequestsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<BookingRequestsController> _logger;
     private readonly ITelegramNotificationService _telegramService;
+    private readonly IAuditLogService _auditLog;
 
     public BookingRequestsController(
         AppDbContext context,
         ILogger<BookingRequestsController> logger,
-        ITelegramNotificationService telegramService)
+        ITelegramNotificationService telegramService,
+        IAuditLogService auditLog)
     {
         _context = context;
         _logger = logger;
         _telegramService = telegramService;
+        _auditLog = auditLog;
     }
 
     [HttpPost]
-    public async Task<ActionResult<BookingRequestDto>> CreateBookingRequest([FromBody] CreateBookingRequestDto dto)
+    public async Task<ActionResult<ApiResponse<BookingRequestDto>>> CreateBookingRequest([FromBody] CreateBookingRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.FullName) || string.IsNullOrWhiteSpace(dto.Phone))
+        // 1. Strict Server-Side Validation
+        var validationErrors = RequestValidator.ValidateBooking(dto);
+        if (validationErrors.Count > 0)
         {
-            return BadRequest(new { message = "Ism va telefon raqami kiritilishi shart." });
+            return UnprocessableEntity(ApiResponse<BookingRequestDto>.Fail(
+                "Bron so'rovi ma'lumotlarida xatoliklar mavjud.",
+                validationErrors
+            ));
         }
 
-        if (dto.CheckIn >= dto.CheckOut)
+        // 2. Database Transaction for ACID Integrity
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            return BadRequest(new { message = "Ketish sanasi (Check-out) kelish sanasidan (Check-in) keyin bo'lishi kerak." });
+            var booking = new BookingRequest
+            {
+                FullName = dto.FullName.Trim(),
+                Phone = dto.Phone.Trim(),
+                Email = dto.Email?.Trim(),
+                CheckIn = dto.CheckIn,
+                CheckOut = dto.CheckOut,
+                Adults = dto.Adults > 0 ? dto.Adults : 1,
+                Children = dto.Children >= 0 ? dto.Children : 0,
+                RoomId = dto.RoomId,
+                SpecialRequests = dto.SpecialRequests?.Trim(),
+                Status = "New",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.BookingRequests.Add(booking);
+            await _context.SaveChangesAsync();
+
+            // Load Room name if specified
+            string? roomName = null;
+            if (booking.RoomId.HasValue)
+            {
+                var room = await _context.Rooms.FindAsync(booking.RoomId.Value);
+                roomName = room?.Name;
+            }
+
+            // Commit Transaction
+            await transaction.CommitAsync();
+
+            _logger.LogInformation("Yangi bron so'rovi qabul qilindi: ID={Id}, Mehmon={Name}, Telefon={Phone}", 
+                booking.Id, booking.FullName, booking.Phone);
+
+            // Audit log record
+            await _auditLog.LogAsync("CREATE_BOOKING", "BookingRequest", booking.Id.ToString(), $"Yangi bron: {booking.FullName}, {booking.CheckIn:yyyy-MM-dd} dan {booking.CheckOut:yyyy-MM-dd} gacha ({roomName ?? "Xona ko'rsatilmagan"})");
+
+            // Send real-time Telegram notification in background
+            _ = _telegramService.SendBookingNotificationAsync(booking, roomName);
+
+            var resultDto = new BookingRequestDto(
+                booking.Id,
+                booking.FullName,
+                booking.Phone,
+                booking.Email,
+                booking.CheckIn,
+                booking.CheckOut,
+                booking.Adults,
+                booking.Children,
+                booking.RoomId,
+                roomName,
+                booking.SpecialRequests,
+                booking.Status,
+                booking.CreatedAt
+            );
+
+            return StatusCode(StatusCodes.Status201Created, ApiResponse<BookingRequestDto>.Ok(
+                resultDto,
+                "Bron so'rovingiz muvaffaqiyatli qabul qilindi! Menejerimiz tez orada siz bilan bog'lanadi."
+            ));
         }
-
-        var booking = new BookingRequest
+        catch (Exception ex)
         {
-            FullName = dto.FullName.Trim(),
-            Phone = dto.Phone.Trim(),
-            Email = dto.Email?.Trim(),
-            CheckIn = dto.CheckIn,
-            CheckOut = dto.CheckOut,
-            Adults = dto.Adults > 0 ? dto.Adults : 1,
-            Children = dto.Children >= 0 ? dto.Children : 0,
-            RoomId = dto.RoomId,
-            SpecialRequests = dto.SpecialRequests?.Trim(),
-            Status = "New",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.BookingRequests.Add(booking);
-        await _context.SaveChangesAsync();
-
-        // Load Room name if specified
-        string? roomName = null;
-        if (booking.RoomId.HasValue)
-        {
-            var room = await _context.Rooms.FindAsync(booking.RoomId.Value);
-            roomName = room?.Name;
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Bron so'rovini saqlashda tranzaksiya bekor qilindi (Rollback).");
+            throw;
         }
-
-        _logger.LogInformation("Yangi bron so'rovi qabul qilindi: ID={Id}, Mehmon={Name}, Telefon={Phone}", 
-            booking.Id, booking.FullName, booking.Phone);
-
-        // Send real-time Telegram notification in background
-        _ = _telegramService.SendBookingNotificationAsync(booking, roomName);
-
-        var resultDto = new BookingRequestDto(
-            booking.Id,
-            booking.FullName,
-            booking.Phone,
-            booking.Email,
-            booking.CheckIn,
-            booking.CheckOut,
-            booking.Adults,
-            booking.Children,
-            booking.RoomId,
-            roomName,
-            booking.SpecialRequests,
-            booking.Status,
-            booking.CreatedAt
-        );
-
-        return CreatedAtAction(nameof(GetBookingRequestById), new { id = booking.Id }, resultDto);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<BookingRequestDto>> GetBookingRequestById(int id)
+    public async Task<ActionResult<ApiResponse<BookingRequestDto>>> GetBookingRequestById(int id)
     {
         var booking = await _context.BookingRequests
+            .AsNoTracking()
             .Include(b => b.Room)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (booking == null)
         {
-            return NotFound(new { message = "So'rov topilmadi." });
+            return NotFound(ApiResponse<BookingRequestDto>.Fail("Bron so'rovi topilmadi."));
         }
 
         var result = new BookingRequestDto(
@@ -117,6 +141,6 @@ public class BookingRequestsController : ControllerBase
             booking.CreatedAt
         );
 
-        return Ok(result);
+        return Ok(ApiResponse<BookingRequestDto>.Ok(result));
     }
 }

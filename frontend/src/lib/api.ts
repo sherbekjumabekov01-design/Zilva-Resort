@@ -84,7 +84,7 @@ export async function fetchRoomBySlug(slug: string): Promise<Room | null> {
   return found || null;
 }
 
-export async function submitBookingRequest(data: BookingRequestInput): Promise<{ success: boolean; message: string; record?: BookingRequestRecord }> {
+export async function submitBookingRequest(data: BookingRequestInput): Promise<{ success: boolean; message: string; record?: BookingRequestRecord; errors?: string[] }> {
   try {
     const res = await fetch(`${API_BASE}/bookingrequests`, {
       method: 'POST',
@@ -92,9 +92,19 @@ export async function submitBookingRequest(data: BookingRequestInput): Promise<{
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      const result = await res.json();
-      return { success: true, message: "Bron so'rovingiz muvaffaqiyatli qabul qilindi! Menejerimiz tez orada siz bilan bog'lanadi.", record: result };
+    const result = await res.json();
+    if (res.ok && (result.success !== false)) {
+      return { 
+        success: true, 
+        message: result.message || "Bron so'rovingiz muvaffaqiyatli qabul qilindi! Menejerimiz tez orada siz bilan bog'lanadi.", 
+        record: result.data || result 
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || "Bron ma'lumotlarida xatolik yuz berdi.",
+        errors: result.errors || []
+      };
     }
   } catch {
     // Fallback
@@ -118,7 +128,7 @@ export async function submitBookingRequest(data: BookingRequestInput): Promise<{
   };
 }
 
-export async function submitContactRequest(data: ContactRequestInput): Promise<{ success: boolean; message: string; record?: ContactRequestRecord }> {
+export async function submitContactRequest(data: ContactRequestInput): Promise<{ success: boolean; message: string; record?: ContactRequestRecord; errors?: string[] }> {
   try {
     const res = await fetch(`${API_BASE}/contactrequests`, {
       method: 'POST',
@@ -126,9 +136,19 @@ export async function submitContactRequest(data: ContactRequestInput): Promise<{
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      const result = await res.json();
-      return { success: true, message: "Xabaringiz yuborildi! Tez orada javob beramiz.", record: result };
+    const result = await res.json();
+    if (res.ok && (result.success !== false)) {
+      return { 
+        success: true, 
+        message: result.message || "Xabaringiz yuborildi! Tez orada javob beramiz.", 
+        record: result.data || result 
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || "Xabar yuborishda xatolik yuz berdi.",
+        errors: result.errors || []
+      };
     }
   } catch {
     // Fallback
@@ -149,11 +169,12 @@ export async function submitContactRequest(data: ContactRequestInput): Promise<{
   };
 }
 
-export async function fetchAdminBookings(): Promise<BookingRequestRecord[]> {
+export async function fetchAdminBookings(page = 1, pageSize = 20): Promise<BookingRequestRecord[]> {
   try {
-    const res = await fetch(`${API_BASE}/admin/booking-requests`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/admin/booking-requests?page=${page}&pageSize=${pageSize}`, { cache: 'no-store' });
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : (data.items || []);
     }
   } catch {
     // Fallback
@@ -181,11 +202,12 @@ export async function updateAdminBookingStatus(id: number, status: string): Prom
   return false;
 }
 
-export async function fetchAdminContacts(): Promise<ContactRequestRecord[]> {
+export async function fetchAdminContacts(page = 1, pageSize = 20): Promise<ContactRequestRecord[]> {
   try {
-    const res = await fetch(`${API_BASE}/admin/contact-requests`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/admin/contact-requests?page=${page}&pageSize=${pageSize}`, { cache: 'no-store' });
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : (data.items || []);
     }
   } catch {
     // Fallback
@@ -201,12 +223,14 @@ export async function loginAdmin(credentials: { username?: string; password?: st
       body: JSON.stringify(credentials)
     });
     const data = await res.json();
-    if (res.ok && data.success) {
+    if (res.ok && (data.success || data.token)) {
+      const token = data.data?.token || data.token;
+      const user = data.data?.user?.username || data.username || 'admin';
       if (typeof window !== 'undefined') {
-        localStorage.setItem('zilva_admin_token', data.token);
-        localStorage.setItem('zilva_admin_user', data.username || 'admin');
+        localStorage.setItem('zilva_admin_token', token);
+        localStorage.setItem('zilva_admin_user', user);
       }
-      return { success: true, token: data.token, message: data.message };
+      return { success: true, token, message: data.message || "Tizimga muvaffaqiyatli kirildi." };
     }
     return { success: false, message: data.message || "Login yoki parol noto'g'ri." };
   } catch {
@@ -419,7 +443,8 @@ export async function fetchAdminStats(): Promise<SystemStatsRecord> {
   try {
     const res = await fetch(`${API_BASE}/admin/stats`, { cache: 'no-store' });
     if (res.ok) {
-      return await res.json();
+      const json = await res.json();
+      return json.data || json;
     }
   } catch {
     // Fallback
@@ -438,11 +463,12 @@ export async function fetchAdminStats(): Promise<SystemStatsRecord> {
   };
 }
 
-export async function fetchAdminAuditLogs(): Promise<AuditLogRecord[]> {
+export async function fetchAdminAuditLogs(page = 1, pageSize = 20): Promise<AuditLogRecord[]> {
   try {
-    const res = await fetch(`${API_BASE}/admin/audit-logs`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/admin/audit-logs?page=${page}&pageSize=${pageSize}`, { cache: 'no-store' });
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : (data.items || []);
     }
   } catch {
     // Fallback

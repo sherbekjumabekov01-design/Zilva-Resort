@@ -13,23 +13,31 @@ public class ContactRequestsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<ContactRequestsController> _logger;
     private readonly ITelegramNotificationService _telegramService;
+    private readonly IAuditLogService _auditLog;
 
     public ContactRequestsController(
         AppDbContext context,
         ILogger<ContactRequestsController> logger,
-        ITelegramNotificationService telegramService)
+        ITelegramNotificationService telegramService,
+        IAuditLogService auditLog)
     {
         _context = context;
         _logger = logger;
         _telegramService = telegramService;
+        _auditLog = auditLog;
     }
 
     [HttpPost]
-    public async Task<ActionResult<ContactRequestDto>> CreateContactRequest([FromBody] CreateContactRequestDto dto)
+    public async Task<ActionResult<ApiResponse<ContactRequestDto>>> CreateContactRequest([FromBody] CreateContactRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.FullName) || string.IsNullOrWhiteSpace(dto.Phone) || string.IsNullOrWhiteSpace(dto.Message))
+        // 1. Strict Server-Side Validation
+        var validationErrors = RequestValidator.ValidateContact(dto);
+        if (validationErrors.Count > 0)
         {
-            return BadRequest(new { message = "Ism, telefon raqami va xabar matnini to'ldirish majburiy." });
+            return UnprocessableEntity(ApiResponse<ContactRequestDto>.Fail(
+                "Xabar ma'lumotlarida xatoliklar mavjud.",
+                validationErrors
+            ));
         }
 
         var contact = new ContactRequest
@@ -49,6 +57,8 @@ public class ContactRequestsController : ControllerBase
         _logger.LogInformation("Yangi aloqa xabari qabul qilindi: ID={Id}, Mehmon={Name}, Mavzu={Subject}", 
             contact.Id, contact.FullName, contact.Subject);
 
+        await _auditLog.LogAsync("CREATE_CONTACT_MESSAGE", "ContactRequest", contact.Id.ToString(), $"Murojaat yuborildi: {contact.FullName} ({contact.Subject})");
+
         // Send real-time Telegram alert in background
         _ = _telegramService.SendContactNotificationAsync(contact);
 
@@ -63,6 +73,9 @@ public class ContactRequestsController : ControllerBase
             contact.CreatedAt
         );
 
-        return Ok(resultDto);
+        return StatusCode(StatusCodes.Status201Created, ApiResponse<ContactRequestDto>.Ok(
+            resultDto,
+            "Xabaringiz qabul qilindi! Tez orada mutaxassisimiz siz bilan bog'lanadi."
+        ));
     }
 }

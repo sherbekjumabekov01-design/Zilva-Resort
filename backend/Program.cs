@@ -15,6 +15,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 
 // Configure Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -26,6 +27,13 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 10;
+    });
+    options.AddSlidingWindowLimiter("AuthLimit", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 3;
+        opt.QueueLimit = 2;
     });
 });
 

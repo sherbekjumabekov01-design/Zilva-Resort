@@ -60,5 +60,15 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Room>()
             .Property(r => r.PricePerNight)
             .HasPrecision(18, 2);
+
+        // Performance Indexes
+        modelBuilder.Entity<BookingRequest>()
+            .HasIndex(b => new { b.CreatedAt, b.Status });
+
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => new { a.Timestamp, a.UserName });
+
+        modelBuilder.Entity<AdminUser>()
+            .HasIndex(u => new { u.Username, u.IsActive });
     }
 }

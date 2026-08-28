@@ -32,18 +32,23 @@ public class GlobalExceptionMiddleware
 
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/problem+json";
+        context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-        var problemDetails = new ProblemDetails
+        var message = _env.IsDevelopment()
+            ? exception.Message
+            : "Serverda kutilmagan xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring.";
+
+        var response = new
         {
-            Status = context.Response.StatusCode,
-            Title = "Serverda xatolik yuz berdi",
-            Detail = _env.IsDevelopment() ? exception.ToString() : "So'rovni qayta ishlashda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring.",
-            Instance = context.Request.Path
+            success = false,
+            message,
+            statusCode = context.Response.StatusCode,
+            path = context.Request.Path.Value,
+            timestamp = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(problemDetails);
+        var json = JsonSerializer.Serialize(response);
         return context.Response.WriteAsync(json);
     }
 }
