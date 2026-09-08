@@ -6,7 +6,8 @@ import Link from 'next/link';
 import {
   Users, Maximize, Bed, Bath, Mountain, Flame, Wifi, Tv, Snowflake,
   Coffee, ShieldCheck, Sun, Sparkles, Shirt, Bell, Calendar, Phone,
-  CheckCircle2, AlertCircle, ArrowLeft, ExternalLink, Share2
+  CheckCircle2, AlertCircle, ArrowLeft, ExternalLink, Share2,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Room } from '@/types';
 import { fallbackRooms } from '@/data/rooms';
@@ -120,35 +121,88 @@ export default function RoomDetailPage() {
 
         {/* Gallery Grid */}
         <div className="space-y-4">
-          {/* Active Big Image */}
-          <div className="relative h-[380px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl bg-neutral-900 border border-[#dfd8cb]">
-            <img
-              src={allImages[activeImageIndex] || room.coverImage}
-              alt={room.name}
-              className="w-full h-full object-cover transition-all duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3.5 py-1 rounded-full text-white text-xs font-medium">
-              {activeImageIndex + 1} / {allImages.length} fotosurat
+          <div className="relative flex items-center gap-3 sm:gap-5">
+            {/* Previous Button (Outside on the left) */}
+            {allImages.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setActiveImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1))}
+                className="hidden sm:flex w-12 h-12 rounded-full bg-white dark:bg-[#0f2319] hover:bg-[#b88a44] dark:hover:bg-[#d8aa62] text-[#1b382b] dark:text-white hover:text-white dark:hover:text-black border border-[#dfd8cb] dark:border-white/20 items-center justify-center transition-all hover:scale-110 active:scale-90 shadow-xl shrink-0 cursor-pointer"
+                title="Oldingi rasm"
+                aria-label="Oldingi rasm"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Active Big Image */}
+            <div className="relative flex-1 h-[380px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl bg-neutral-900 border border-[#dfd8cb]">
+              <img
+                src={allImages[activeImageIndex] || room.coverImage}
+                alt={room.name}
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+              {/* Counter Badge */}
+              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3.5 py-1 rounded-full text-white text-xs font-medium z-10">
+                {activeImageIndex + 1} / {allImages.length} fotosurat
+              </div>
             </div>
+
+            {/* Next Button (Outside on the right) */}
+            {allImages.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setActiveImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1))}
+                className="hidden sm:flex w-12 h-12 rounded-full bg-white dark:bg-[#0f2319] hover:bg-[#b88a44] dark:hover:bg-[#d8aa62] text-[#1b382b] dark:text-white hover:text-white dark:hover:text-black border border-[#dfd8cb] dark:border-white/20 items-center justify-center transition-all hover:scale-110 active:scale-90 shadow-xl shrink-0 cursor-pointer"
+                title="Keyingi rasm"
+                aria-label="Keyingi rasm"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
           </div>
 
-          {/* Thumbnails row */}
+          {/* Thumbnails row + Mobile Controls */}
           {allImages.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {allImages.map((imgUrl, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveImageIndex(index)}
-                  className={`relative w-24 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
-                    activeImageIndex === index
-                      ? 'border-[#b88a44] scale-105 shadow-md'
-                      : 'border-transparent opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={imgUrl} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              {/* Mobile Prev Button */}
+              <button
+                type="button"
+                onClick={() => setActiveImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1))}
+                className="sm:hidden px-3.5 py-2 rounded-2xl bg-white dark:bg-[#0f2319] border border-[#dfd8cb] dark:border-white/20 text-[#1b382b] dark:text-white shadow-md flex items-center gap-1 text-xs font-semibold active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Oldingi</span>
+              </button>
+
+              {/* Thumbnails row */}
+              <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none flex-1 justify-center sm:justify-start">
+                {allImages.map((imgUrl, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveImageIndex(index)}
+                    className={`relative w-20 sm:w-24 h-16 sm:h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                      activeImageIndex === index
+                        ? 'border-[#b88a44] scale-105 shadow-md ring-2 ring-[#b88a44]/40'
+                        : 'border-transparent opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+
+              {/* Mobile Next Button */}
+              <button
+                type="button"
+                onClick={() => setActiveImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1))}
+                className="sm:hidden px-3.5 py-2 rounded-2xl bg-white dark:bg-[#0f2319] border border-[#dfd8cb] dark:border-white/20 text-[#1b382b] dark:text-white shadow-md flex items-center gap-1 text-xs font-semibold active:scale-95 cursor-pointer"
+              >
+                <span>Keyingi</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>

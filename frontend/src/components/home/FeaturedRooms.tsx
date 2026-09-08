@@ -40,23 +40,23 @@ export default function FeaturedRooms({ rooms }: { rooms: Room[] }) {
 
           <Link
             href="/rooms"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#1b382b] dark:border-white/30 text-[#1b382b] dark:text-white hover:bg-[#1b382b] hover:text-white dark:hover:bg-white/20 text-xs font-semibold uppercase tracking-wider transition-all self-start md:self-auto group"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass-btn text-[#1b382b] dark:text-white text-xs font-semibold uppercase tracking-wider transition-all self-start md:self-auto group"
           >
             <span>{t.featuredRooms.viewAll}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-[#d8aa62] group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeCategory === cat.id
-                  ? 'bg-[#1b382b] text-white shadow-md'
-                  : 'bg-[#f8f5ee] text-[#5e6962] hover:bg-[#dfd8cb] hover:text-[#18221b]'
+                  ? 'glass-btn-forest font-bold scale-105'
+                  : 'glass-pill text-[#5e6962] dark:text-white/80 hover:text-[#18221b] dark:hover:text-white'
               }`}
             >
               {cat.label}

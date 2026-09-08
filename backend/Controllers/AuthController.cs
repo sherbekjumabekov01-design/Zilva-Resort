@@ -1,5 +1,10 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ZilvaResort.Api.Data;
 using ZilvaResort.Api.DTOs;
 using ZilvaResort.Api.Models;
@@ -90,16 +95,42 @@ public class AuthController : ControllerBase
 
         await _auditLog.LogAsync("SUCCESSFUL_LOGIN", "Auth", matchedUser.Id.ToString(), $"{matchedUser.Username} tizimga kirdi (Rol: {matchedUser.Role})");
 
-        // Generate token with expiration (60 minutes)
-        var expiresAt = DateTime.UtcNow.AddMinutes(60);
-        var rawToken = $"zilva_jwt_{matchedUser.Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}_{Guid.NewGuid():N}";
+        // Cryptographic JWT Token Generation
+        var jwtKey = _configuration["JwtSettings:SecretKey"] ?? "ZilvaResort_SuperSecret_Jwt_Encryption_Key_2026_Mountain_Luxury_Resort_Security";
+        var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? "ZilvaResortApi";
+        var jwtAudience = _configuration["JwtSettings:Audience"] ?? "ZilvaResortClient";
+        var expiresInMinutes = _configuration.GetValue<int>("JwtSettings:ExpiresInMinutes", 1440);
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, matchedUser.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Name, matchedUser.Username),
+            new Claim(ClaimTypes.NameIdentifier, matchedUser.Id.ToString()),
+            new Claim(ClaimTypes.Name, matchedUser.Username),
+            new Claim(ClaimTypes.Role, matchedUser.Role),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiresInMinutes);
+        var token = new JwtSecurityToken(
+            issuer: jwtIssuer,
+            audience: jwtAudience,
+            claims: claims,
+            expires: expiresAt,
+            signingCredentials: creds
+        );
+
+        var rawToken = new JwtSecurityTokenHandler().WriteToken(token);
 
         return Ok(ApiResponse<object>.Ok(new
         {
             token = rawToken,
             tokenType = "Bearer",
             expiresAt,
-            expiresInSeconds = 3600,
+            expiresInSeconds = expiresInMinutes * 60,
             user = new
             {
                 id = matchedUser.Id,
@@ -111,14 +142,11 @@ public class AuthController : ControllerBase
         }, "Tizimga muvaffaqiyatli kirildi."));
     }
 
+    [Authorize]
     [HttpGet("verify")]
-    public ActionResult Verify([FromHeader(Name = "Authorization")] string? authorization)
+    public ActionResult Verify()
     {
-        if (string.IsNullOrWhiteSpace(authorization) || (!authorization.StartsWith("Bearer zilva_jwt_") && !authorization.StartsWith("Bearer zilva_admin_")))
-        {
-            return Unauthorized(ApiResponse<object>.Fail("Avtorizatsiya tokeni topilmadi yoki muddati o'tgan."));
-        }
-
-        return Ok(ApiResponse<object>.Ok(new { valid = true, message = "Token faol va tasdiqlangan." }));
+        var username = User.Identity?.Name ?? "Admin";
+        return Ok(ApiResponse<object>.Ok(new { valid = true, username, message = "Token faol va tasdiqlangan." }));
     }
 }

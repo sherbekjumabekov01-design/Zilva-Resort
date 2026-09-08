@@ -25,7 +25,7 @@ function FacebookIcon({ className }: { className?: string }) {
 }
 
 export default function Footer() {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
 
   const footerLinks = [
     { href: '/', label: t.nav.home },

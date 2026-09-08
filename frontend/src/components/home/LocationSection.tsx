@@ -27,8 +27,8 @@ export default function LocationSection() {
 
         {/* Map & Travel Info Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {/* Info Card */}
-          <div className="bg-[#12241b] text-white p-8 rounded-3xl flex flex-col justify-between space-y-8">
+          {/* Info Card with Frosted Glass Look */}
+          <div className="glass-card-dark text-white p-8 rounded-3xl flex flex-col justify-between space-y-8 border border-white/20 shadow-2xl">
             <div className="space-y-6">
               <div className="space-y-2">
                 <span className="text-xs text-[#d8aa62] font-semibold uppercase tracking-wider">
@@ -39,8 +39,8 @@ export default function LocationSection() {
                 </h3>
               </div>
 
-              <div className="space-y-4 text-xs text-white/80">
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="space-y-4 text-xs text-white/85">
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl glass-pill">
                   <Car className="w-5 h-5 text-[#d8aa62] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-white block">
@@ -50,7 +50,7 @@ export default function LocationSection() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl glass-pill">
                   <Navigation className="w-5 h-5 text-[#d8aa62] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-white block">
@@ -62,23 +62,23 @@ export default function LocationSection() {
               </div>
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-white/10">
+            <div className="space-y-3 pt-4 border-t border-white/15">
               <a
                 href={siteSettings.geo.yandexMapUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#b88a44] to-[#c79a55] hover:from-[#a77a35] hover:to-[#b88a44] text-white font-semibold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl glass-btn-gold text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <span>{t.location.openMap}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5 text-white" />
               </a>
 
               <a
                 href={`tel:${siteSettings.phone}`}
-                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl glass-btn text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <Phone className="w-3.5 h-3.5 text-[#d8aa62]" />
-                <span>Qo'ng'iroq qilish: {siteSettings.phone}</span>
+                <span>Qo&apos;ng&apos;iroq qilish: {siteSettings.phone}</span>
               </a>
             </div>
           </div>

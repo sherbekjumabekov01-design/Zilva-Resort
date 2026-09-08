@@ -34,7 +34,7 @@ export default function HeroSection() {
       <div className="resort-container relative z-10 text-center max-w-4xl mx-auto space-y-6">
         {/* Top Badges: Tagline & Live Weather */}
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#d8aa62] text-xs font-semibold uppercase tracking-[0.2em] shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-btn text-[#d8aa62] text-xs font-semibold uppercase tracking-[0.2em] shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.hero.badge}</span>
           </div>
@@ -52,19 +52,19 @@ export default function HeroSection() {
           {t.hero.subtitle}
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons in Glass Design */}
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={() => openBookingModal()}
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#b88a44] to-[#c79a55] hover:from-[#a77a35] hover:to-[#b88a44] text-white font-semibold text-xs sm:text-sm uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5"
+            className="w-full sm:w-auto px-8 py-4 rounded-full glass-btn-gold font-semibold text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2.5"
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-white" />
             <span>{t.hero.bookBtn}</span>
           </button>
 
           <Link
             href="/rooms"
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white font-semibold text-xs sm:text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group"
+            className="w-full sm:w-auto px-8 py-4 rounded-full glass-btn font-semibold text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2 group"
           >
             <span>{t.hero.roomsBtn}</span>
             <ArrowRight className="w-4 h-4 text-[#d8aa62] group-hover:translate-x-1 transition-transform" />
@@ -76,7 +76,7 @@ export default function HeroSection() {
           {heroStats.map((stat, i) => (
             <div
               key={i}
-              className="p-4 rounded-2xl glass-pill text-center hover:scale-105 transition-transform duration-300 shadow-lg"
+              className="p-4 rounded-2xl glass-pill text-center hover:scale-105 transition-transform duration-300 shadow-xl border border-white/20"
             >
               <div className="text-xl sm:text-2xl font-serif font-bold text-[#d8aa62] drop-shadow-sm">
                 {stat.value}

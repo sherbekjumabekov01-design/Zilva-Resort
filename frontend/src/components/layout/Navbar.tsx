@@ -42,11 +42,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile & dropdown menus on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setMobileMenuOpen(false);
     setLangMenuOpen(false);
-  }, [pathname]);
+  }
 
   // Close lang dropdown on outside click
   useEffect(() => {
@@ -157,7 +158,7 @@ export default function Navbar() {
               </button>
 
               {langMenuOpen && (
-                <div className="absolute right-0 mt-2 w-36 bg-[#0e2118]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-2 w-36 bg-[#0e2118]/90 backdrop-blur-2xl border border-white/20 rounded-2xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
                   {(['UZ', 'RU', 'EN'] as const).map((l) => (
                     <button
                       key={l}
@@ -167,12 +168,12 @@ export default function Navbar() {
                       }}
                       className={`w-full text-left px-3 py-1.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
                         lang === l
-                          ? 'bg-[#d8aa62]/20 text-[#d8aa62] font-bold'
+                          ? 'glass-btn-gold font-bold'
                           : 'text-white/80 hover:bg-white/10 hover:text-white'
                       }`}
                     >
                       <span>{l === 'UZ' ? "O'zbekcha" : l === 'RU' ? 'Русский' : 'English'}</span>
-                      <span className="text-[10px] font-bold opacity-60">{l}</span>
+                      <span className="text-[10px] font-bold opacity-75">{l}</span>
                     </button>
                   ))}
                 </div>
@@ -182,7 +183,7 @@ export default function Navbar() {
             {/* Glassmorphic Rounded Pill Booking Button */}
             <button
               onClick={() => openBookingModal()}
-              className="px-5 py-2 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[13px] font-medium tracking-wide transition-all shadow-sm hover:shadow-lg hover:border-white/60 active:scale-95"
+              className="px-5 py-2 rounded-full glass-btn text-white text-[13px] font-semibold tracking-wide hover:border-[#d8aa62]/60"
             >
               {bookingBtnText}
             </button>
@@ -193,7 +194,7 @@ export default function Navbar() {
             {/* Mobile Booking Button */}
             <button
               onClick={() => openBookingModal()}
-              className="px-3.5 py-1.5 rounded-full border border-white/40 bg-white/15 text-white text-xs font-medium"
+              className="px-3.5 py-1.5 rounded-full glass-btn text-white text-xs font-semibold"
             >
               {bookingBtnText}
             </button>
@@ -201,7 +202,7 @@ export default function Navbar() {
             {/* Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-white/10 text-white transition-colors"
+              className="p-2 rounded-xl glass-btn text-white"
               aria-label="Menyuni ochish"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -224,7 +225,7 @@ export default function Navbar() {
                   <span className="block font-serif text-lg font-bold tracking-wider text-white">
                     ZILVA RESORT & SPA
                   </span>
-                  <span className="text-[11px] text-white/70">Chimgan, Bo'stonliq • 24/7</span>
+                  <span className="text-[11px] text-white/70">Chimgan, Bo&apos;stonliq • 24/7</span>
                 </div>
               </div>
               <button

@@ -2,11 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mountain, Trees, ShieldCheck, HeartHandshake, Compass, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function AboutSection() {
-  const { t, lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const highlights = [
     {
@@ -38,19 +39,25 @@ export default function AboutSection() {
           {/* Left Visual Collage */}
           <div className="relative">
             <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-white/10">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80"
                 alt="Zilva Resort"
+                width={1000}
+                height={600}
                 className="w-full h-[420px] sm:h-[500px] object-cover hover:scale-105 transition-transform duration-700"
+                unoptimized
               />
             </div>
 
             {/* Overlapping small image */}
             <div className="hidden sm:block absolute -bottom-8 -right-6 z-20 w-64 h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-white/10">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=600&q=80"
                 alt="SPA Hovuzi"
+                width={600}
+                height={400}
                 className="w-full h-full object-cover"
+                unoptimized
               />
             </div>
 

@@ -8,11 +8,6 @@ import {
   ShieldCheck,
   Lock,
   ArrowRight,
-  Sparkles,
-  Printer,
-  Download,
-  AlertCircle,
-  QrCode,
   Smartphone
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';

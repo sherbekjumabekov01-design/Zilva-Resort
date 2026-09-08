@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Star, Quote, Sparkles } from 'lucide-react';
 import { reviewsData } from '@/data/reviews';
 import { useLanguage } from '@/context/LanguageContext';
@@ -28,33 +29,36 @@ export default function ReviewsSection() {
           {reviewsData.map((item) => (
             <div
               key={item.id}
-              className="glass-card glass-card-interactive p-8 rounded-3xl shadow-lg transition-all duration-300 flex flex-col justify-between space-y-6"
+              className="glass-card glass-card-interactive p-8 rounded-3xl shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 border border-white/50 dark:border-white/15"
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-[#b88a44] text-[#b88a44]" />
+                      <Star key={i} className="w-4 h-4 fill-[#d8aa62] text-[#d8aa62]" />
                     ))}
                   </div>
-                  <Quote className="w-8 h-8 text-[#dfd8cb]" />
+                  <Quote className="w-8 h-8 text-[#d8aa62]/30" />
                 </div>
 
-                <p className="text-xs sm:text-sm text-[#5e6962] font-light leading-relaxed italic">
-                  "{item.comment}"
+                <p className="text-xs sm:text-sm text-[#5e6962] dark:text-white/80 font-light leading-relaxed italic">
+                  &ldquo;{item.comment}&rdquo;
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-[#dfd8cb] flex items-center gap-3">
-                <img
+              <div className="pt-4 border-t border-[#dfd8cb]/80 dark:border-white/10 flex items-center gap-3">
+                <Image
                   src={item.avatar}
                   alt={item.author}
-                  className="w-11 h-11 rounded-full object-cover border border-[#dfd8cb]"
+                  width={44}
+                  height={44}
+                  className="w-11 h-11 rounded-full object-cover border border-[#d8aa62]/40 shadow-sm"
+                  unoptimized
                 />
                 <div>
-                  <h4 className="font-semibold text-xs text-[#18221b]">{item.author}</h4>
-                  <span className="text-[11px] text-[#5e6962] block">
-                    {item.city} • <span className="text-[#b88a44]">{item.roomType}</span>
+                  <h4 className="font-semibold text-xs text-[#18221b] dark:text-white">{item.author}</h4>
+                  <span className="text-[11px] text-[#5e6962] dark:text-white/60 block">
+                    {item.city} • <span className="text-[#d8aa62] font-medium">{item.roomType}</span>
                   </span>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import HeroSection from '@/components/home/HeroSection';
 import QuickBookingBar from '@/components/home/QuickBookingBar';

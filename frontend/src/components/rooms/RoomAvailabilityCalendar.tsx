@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, ShieldAlert, Sparkles, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
 import { Room } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useBooking } from '@/context/BookingContext';
@@ -12,7 +12,7 @@ interface RoomAvailabilityCalendarProps {
 }
 
 export default function RoomAvailabilityCalendar({ room }: RoomAvailabilityCalendarProps) {
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const { openBookingModal } = useBooking();
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -82,7 +82,7 @@ export default function RoomAvailabilityCalendar({ room }: RoomAvailabilityCalen
       } else {
         // Check if any booked day is inside range
         let hasBookedInRange = false;
-        let d = new Date(selectedStart);
+        const d = new Date(selectedStart);
         while (d <= clickedDate) {
           if (d.getMonth() === month && bookedDays.has(d.getDate())) {
             hasBookedInRange = true;
@@ -110,7 +110,10 @@ export default function RoomAvailabilityCalendar({ room }: RoomAvailabilityCalen
   const handleBookNow = () => {
     const checkInStr = selectedStart ? selectedStart.toISOString().split('T')[0] : undefined;
     const checkOutStr = selectedEnd ? selectedEnd.toISOString().split('T')[0] : undefined;
-    openBookingModal(room.id, checkInStr, checkOutStr);
+    openBookingModal(
+      room.id,
+      checkInStr && checkOutStr ? { checkIn: checkInStr, checkOut: checkOutStr } : undefined
+    );
   };
 
   return (

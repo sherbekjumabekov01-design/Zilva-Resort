@@ -76,7 +76,7 @@ export default function WeatherWidget({ variant = 'banner' }: { variant?: 'banne
             EN: condEn
           }
         });
-      } catch (err) {
+      } catch {
         // graceful fallback to default mountain weather
       }
     }

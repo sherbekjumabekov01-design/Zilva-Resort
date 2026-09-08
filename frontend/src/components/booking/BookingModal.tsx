@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Calendar, User, Phone, Mail, CheckCircle2, ExternalLink, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useBooking } from '@/context/BookingContext';
 import { fallbackRooms } from '@/data/rooms';
@@ -32,7 +32,9 @@ export default function BookingModal() {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       if (selectedRoomId) {
         setRoomId(selectedRoomId);
@@ -61,7 +63,7 @@ export default function BookingModal() {
       setIsSuccess(false);
       setErrorMessage('');
     }
-  }, [isOpen, selectedRoomId, initialDates]);
+  }
 
   if (!isOpen) return null;
 
@@ -106,7 +108,7 @@ export default function BookingModal() {
     setErrorMessage('');
 
     try {
-      await submitBookingRequest({
+      const res = await submitBookingRequest({
         fullName,
         phone,
         email: email || undefined,
@@ -118,8 +120,21 @@ export default function BookingModal() {
         roomName: currentRoom.name,
         specialRequests: specialRequests || undefined
       });
-      setIsSuccess(true);
-    } catch {
+      if (res.success) {
+        setIsSuccess(true);
+      } else {
+        setErrorMessage(
+          res.message || (
+            lang === 'RU'
+              ? "Произошла ошибка при отправке заявки. Пожалуйста, позвоните нам напрямую."
+              : lang === 'EN'
+              ? "Error submitting booking request. Please call us directly."
+              : "So'rov yuborishda xatolik yuz berdi. Iltimos, biz bilan to'g'ridan-to'g'ri telefon orqali bog'laning."
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Booking submission error:", err);
       setErrorMessage(
         lang === 'RU'
           ? "Произошла ошибка при отправке заявки. Пожалуйста, позвоните нам напрямую."
@@ -133,11 +148,11 @@ export default function BookingModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-[#f8f5ee] dark:bg-[#0e2118] rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-[#dfd8cb] dark:border-white/15 flex flex-col animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="glass-panel rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-white/30 dark:border-white/15 flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Modal Header */}
-        <div className="p-6 sm:p-7 bg-[#1b382b] text-white flex items-center justify-between border-b border-white/10">
+        <div className="p-6 sm:p-7 bg-[#1b382b]/90 backdrop-blur-xl text-white flex items-center justify-between border-b border-white/15">
           <div>
             <h2 className="font-serif text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <span>{t.modal.title}</span>
@@ -148,7 +163,7 @@ export default function BookingModal() {
           </div>
           <button
             onClick={closeBookingModal}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="p-2 rounded-full glass-btn text-white"
           >
             <X className="w-5 h-5" />
           </button>
@@ -158,8 +173,8 @@ export default function BookingModal() {
         <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
           {isSuccess ? (
             <div className="text-center py-6 space-y-5">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mx-auto flex items-center justify-center animate-in zoom-in-90 duration-200">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="w-16 h-16 rounded-full glass-btn-gold text-[#d8aa62] mx-auto flex items-center justify-center animate-in zoom-in-90 duration-200">
+                <CheckCircle2 className="w-10 h-10 text-white" />
               </div>
               <div>
                 <h3 className="text-2xl font-serif font-bold text-[#1b382b] dark:text-white">
@@ -171,10 +186,10 @@ export default function BookingModal() {
               </div>
 
               {/* Online Payment Card Promo */}
-              <div className="p-5 rounded-2xl bg-[#12241b] text-white border border-[#d8aa62]/40 shadow-xl max-w-md mx-auto text-left space-y-3">
+              <div className="p-5 rounded-2xl glass-card-dark text-white border border-[#d8aa62]/50 shadow-2xl max-w-md mx-auto text-left space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-[#d8aa62] uppercase tracking-wider font-semibold">100% Kafolatlangan Band Qilish</span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">0% Komissiya</span>
+                  <span className="px-2.5 py-0.5 rounded-full glass-pill text-emerald-300 text-[10px] font-bold">0% Komissiya</span>
                 </div>
                 <p className="text-xs text-white/80 leading-relaxed font-light">
                   Xonangiz boshqa mehmonga berib yuborilmasligi uchun hoziroq Click, Payme yoki Uzum orqali 20% avans to‘lab qo‘yishingiz mumkin.
@@ -182,9 +197,9 @@ export default function BookingModal() {
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(true)}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#b88a44] to-[#c79a55] hover:from-[#a77a35] hover:to-[#b88a44] text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  className="w-full py-3 rounded-2xl glass-btn-gold text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2"
                 >
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4 text-white" />
                   <span>Onlayn To‘lovni Boshlash (Click / Payme)</span>
                 </button>
               </div>
@@ -192,13 +207,13 @@ export default function BookingModal() {
               <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={closeBookingModal}
-                  className="px-6 py-2.5 rounded-full bg-white/10 dark:bg-white/15 text-white text-xs font-semibold uppercase tracking-wider hover:bg-white/20 transition-colors"
+                  className="px-6 py-2.5 rounded-full glass-btn text-white text-xs font-semibold uppercase tracking-wider"
                 >
                   {t.modal.close}
                 </button>
                 <a
                   href={`tel:${siteSettings.phone}`}
-                  className="px-6 py-2.5 rounded-full bg-[#1b382b] text-[#d8aa62] text-xs font-semibold uppercase tracking-wider hover:bg-[#12281e] transition-colors flex items-center justify-center gap-2"
+                  className="px-6 py-2.5 rounded-full glass-btn-forest text-[#d8aa62] text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>{siteSettings.phone}</span>
@@ -221,7 +236,7 @@ export default function BookingModal() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Notice note */}
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+              <div className="p-3.5 rounded-2xl glass-pill flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
                 <AlertCircle className="w-4 h-4 text-[#b88a44] shrink-0 mt-0.5" />
                 <span>
                   {lang === 'RU'
@@ -233,8 +248,14 @@ export default function BookingModal() {
               </div>
 
               {errorMessage && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
-                  {errorMessage}
+                <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-xs text-rose-700 dark:text-rose-200 font-medium flex items-start gap-3 shadow-lg animate-in fade-in duration-200">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-bold block">
+                      {lang === 'RU' ? 'Ошибка бронирования' : lang === 'EN' ? 'Booking Error' : 'Bron qilishda xatolik'}
+                    </span>
+                    <p className="leading-relaxed">{errorMessage}</p>
+                  </div>
                 </div>
               )}
 
@@ -246,7 +267,7 @@ export default function BookingModal() {
                 <select
                   value={roomId}
                   onChange={(e) => setRoomId(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1b382b]"
+                  className="w-full px-4 py-3 rounded-2xl glass-input text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                 >
                   {fallbackRooms.map((room) => (
                     <option key={room.id} value={room.id}>
@@ -278,7 +299,7 @@ export default function BookingModal() {
                     min={todayStr}
                     value={checkIn}
                     onChange={(e) => handleCheckInChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                     required
                   />
                 </div>
@@ -293,14 +314,14 @@ export default function BookingModal() {
                     min={checkIn || todayStr}
                     value={checkOut}
                     onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                     required
                   />
                 </div>
               </div>
 
               {/* Personal Details */}
-              <div className="space-y-4 pt-2 border-t border-[#dfd8cb] dark:border-white/10">
+              <div className="space-y-4 pt-2 border-t border-[#dfd8cb]/80 dark:border-white/10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-[#5e6962] dark:text-white/80 flex items-center gap-1.5">
@@ -312,7 +333,7 @@ export default function BookingModal() {
                       placeholder="Sardor Rahimov"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                       required
                     />
                   </div>
@@ -327,7 +348,7 @@ export default function BookingModal() {
                       placeholder="+998 90 123 45 67"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                       required
                     />
                   </div>
@@ -343,8 +364,40 @@ export default function BookingModal() {
                     placeholder="misol@pochta.uz"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
                   />
+                </div>
+
+                {/* Adults & Children Selection */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-[#5e6962] dark:text-white/80">
+                      {lang === 'RU' ? 'Взрослые' : lang === 'EN' ? 'Adults' : 'Kattalar'}
+                    </label>
+                    <select
+                      value={adults}
+                      onChange={(e) => setAdults(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map(num => (
+                        <option key={num} value={num}>{num} {lang === 'RU' ? 'взрослых' : lang === 'EN' ? 'adults' : 'nafar'}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-[#5e6962] dark:text-white/80">
+                      {lang === 'RU' ? 'Дети' : lang === 'EN' ? 'Children' : 'Bolalar'}
+                    </label>
+                    <select
+                      value={childrenCount}
+                      onChange={(e) => setChildrenCount(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
+                    >
+                      {[0, 1, 2, 3, 4].map(num => (
+                        <option key={num} value={num}>{num} {lang === 'RU' ? 'детей' : lang === 'EN' ? 'children' : 'bola'}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -356,13 +409,13 @@ export default function BookingModal() {
                     placeholder={t.modal.specialRequestsPlaceholder}
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-white dark:bg-black/30 text-sm text-[#18221b] dark:text-white focus:ring-2 focus:ring-[#1b382b] focus:outline-none resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50 resize-none"
                   />
                 </div>
               </div>
 
               {/* Price Calculation Summary */}
-              <div className="p-4 rounded-2xl bg-[#f8f5ee] dark:bg-black/40 border border-[#dfd8cb] dark:border-white/10 flex items-center justify-between">
+              <div className="p-4 rounded-2xl glass-pill flex items-center justify-between">
                 <div>
                   <span className="block text-xs text-[#5e6962] dark:text-white/70">
                     {lang === 'RU' ? `Ориентировочная сумма (${nights} ноч.):` : lang === 'EN' ? `Estimated Total (${nights} night(s)):` : `Taxminiy narx (${nights} kecha uchun):`}
@@ -378,7 +431,7 @@ export default function BookingModal() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#1b382b] to-[#2c5844] hover:from-[#12281e] hover:to-[#1b382b] text-white font-semibold text-sm uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-2xl glass-btn-forest text-white font-semibold text-sm uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#d8aa62]" />
                   <span>{isSubmitting ? t.modal.submitting : t.modal.submitBtn}</span>
@@ -390,7 +443,7 @@ export default function BookingModal() {
                     href={siteSettings.bookingUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-[#b88a44] hover:text-[#9c7334] font-medium transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#d8aa62] hover:text-[#b88a44] font-medium transition-colors"
                   >
                     <span>{lang === 'RU' ? 'Или открыть через Booking.com' : lang === 'EN' ? 'Or open via Booking.com' : "Yoki Booking.com orqali to'g'ridan-to'g'ri ochish"}</span>
                     <ExternalLink className="w-3 h-3" />

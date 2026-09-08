@@ -41,7 +41,24 @@ public class BookingRequestsController : ControllerBase
             ));
         }
 
-        // 2. Database Transaction for ACID Integrity
+        // 2. Double-booking conflict prevention
+        if (dto.RoomId.HasValue)
+        {
+            var hasConflict = await _context.BookingRequests
+                .AnyAsync(b => b.RoomId == dto.RoomId.Value &&
+                               b.Status != "Cancelled" &&
+                               dto.CheckIn < b.CheckOut &&
+                               dto.CheckOut > b.CheckIn);
+
+            if (hasConflict)
+            {
+                return Conflict(ApiResponse<BookingRequestDto>.Fail(
+                    "Kechirasiz, tanlangan sanalarda ushbu xona boshqa mehmon tomonidan band qilingan. Iltimos, boshqa sanalarni yoki boshqa xonani tanlang."
+                ));
+            }
+        }
+
+        // 3. Database Transaction for ACID Integrity
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {

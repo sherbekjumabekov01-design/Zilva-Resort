@@ -46,13 +46,14 @@ export interface BookingRequestInput {
   adults: number;
   children: number;
   roomId?: number;
+  roomName?: string;
   specialRequests?: string;
 }
 
 export interface BookingRequestRecord extends BookingRequestInput {
   id: number;
   roomName?: string;
-  status: 'New' | 'Contacted' | 'Confirmed' | 'Cancelled';
+  status: 'New' | 'Contacted' | 'Confirmed' | 'DepositPaid' | 'Cancelled';
   createdAt: string;
 }
 

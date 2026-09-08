@@ -1,6 +1,9 @@
+using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ZilvaResort.Api.Data;
 using ZilvaResort.Api.Services;
 
@@ -16,6 +19,34 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
+
+// JWT Authentication Configuration
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? "ZilvaResort_SuperSecret_Jwt_Encryption_Key_2026_Mountain_Luxury_Resort_Security";
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "ZilvaResortApi";
+var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "ZilvaResortClient";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+builder.Services.AddAuthorization();
 
 // Configure Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -94,6 +125,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 app.UseRateLimiter();
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Health check endpoint

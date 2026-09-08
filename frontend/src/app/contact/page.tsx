@@ -64,8 +64,11 @@ export default function ContactPage() {
 
       if (res.success) {
         setIsSuccess(true);
+      } else {
+        setErrorMessage(res.message || "Xabar yuborishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
       }
-    } catch {
+    } catch (err) {
+      console.error("Contact submit error:", err);
       setErrorMessage("Xabar yuborishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
     } finally {
       setIsSubmitting(false);

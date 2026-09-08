@@ -2,12 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { activitiesData } from '@/data/activities';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function ActivitiesHighlight() {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <section className="py-24 bg-white dark:bg-[#07110c] relative">
@@ -29,10 +30,10 @@ export default function ActivitiesHighlight() {
 
           <Link
             href="/activities"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#1b382b] dark:border-white/30 text-[#1b382b] dark:text-white hover:bg-[#1b382b] hover:text-white dark:hover:bg-white/20 text-xs font-semibold uppercase tracking-wider transition-all self-start md:self-auto group"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass-btn text-[#1b382b] dark:text-white text-xs font-semibold uppercase tracking-wider transition-all self-start md:self-auto group"
           >
             <span>{t.activities.moreBtn}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-[#d8aa62] group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
@@ -41,30 +42,32 @@ export default function ActivitiesHighlight() {
           {activitiesData.slice(0, 4).map((item) => (
             <div
               key={item.id}
-              className="group bg-[#f8f5ee] rounded-3xl overflow-hidden border border-[#dfd8cb] hover:border-[#b88a44] transition-all duration-300 flex flex-col justify-between"
+              className="group glass-card glass-card-interactive rounded-3xl overflow-hidden border border-white/40 dark:border-white/15 shadow-lg flex flex-col justify-between"
             >
               <div className="relative h-48 w-full overflow-hidden">
-                <img
+                <Image
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  unoptimized
                 />
-                <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-[#1b382b]/90 backdrop-blur-md text-white text-[10px] font-semibold">
+                <span className="absolute top-3 right-3 px-3 py-1 rounded-full glass-pill text-white text-[10px] font-semibold z-10">
                   {item.isFree ? "Bepul" : "Pullik"}
                 </span>
               </div>
 
               <div className="p-5 space-y-2 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-serif font-bold text-lg text-[#18221b] group-hover:text-[#1b382b] transition-colors">
+                  <h3 className="font-serif font-bold text-lg text-[#18221b] dark:text-white group-hover:text-[#b88a44] transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-[#5e6962] font-light mt-1 line-clamp-3">
+                  <p className="text-xs text-[#5e6962] dark:text-white/70 font-light mt-1 line-clamp-3">
                     {item.description}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-[#dfd8cb] text-[11px] text-[#5e6962]">
+                <div className="pt-3 border-t border-[#dfd8cb]/80 dark:border-white/10 text-[11px] text-[#5e6962] dark:text-white/60">
                   <span>Vaqt: {item.timeSlot}</span>
                 </div>
               </div>

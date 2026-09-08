@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ZilvaResort.Api.Data;
@@ -7,6 +8,7 @@ using ZilvaResort.Api.Services;
 
 namespace ZilvaResort.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AdminController : ControllerBase

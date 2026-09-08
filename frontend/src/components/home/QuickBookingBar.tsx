@@ -49,12 +49,12 @@ export default function QuickBookingBar() {
 
   return (
     <div className="relative -mt-16 z-20 resort-container">
-      <div className="glass-card rounded-3xl shadow-2xl p-5 sm:p-7 border border-white/60 dark:border-white/10 backdrop-blur-2xl">
+      <div className="glass-panel rounded-3xl shadow-2xl p-5 sm:p-7 border border-white/60 dark:border-white/15 backdrop-blur-2xl">
         <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
 
           {/* Check-In */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#5e6962] dark:text-emerald-300/80 flex items-center gap-1.5">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#1b382b] dark:text-[#d8aa62] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-[#b88a44]" />
               <span>{t.quickBooking.checkIn}</span>
             </label>
@@ -63,13 +63,13 @@ export default function QuickBookingBar() {
               min={todayStr}
               value={checkIn}
               onChange={(e) => handleCheckInChange(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-[#f8f5ee]/50 dark:bg-black/30 text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1b382b]"
+              className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
             />
           </div>
 
           {/* Check-Out */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#5e6962] dark:text-emerald-300/80 flex items-center gap-1.5">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#1b382b] dark:text-[#d8aa62] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-[#b88a44]" />
               <span>{t.quickBooking.checkOut}</span>
             </label>
@@ -78,20 +78,20 @@ export default function QuickBookingBar() {
               min={checkIn || todayStr}
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-[#f8f5ee]/50 dark:bg-black/30 text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1b382b]"
+              className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
             />
           </div>
 
           {/* Guests */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#5e6962] dark:text-emerald-300/80 flex items-center gap-1.5">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#1b382b] dark:text-[#d8aa62] flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 text-[#b88a44]" />
               <span>{t.quickBooking.adults}</span>
             </label>
             <select
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-[#f8f5ee]/50 dark:bg-black/30 text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1b382b]"
+              className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
             >
               <option value="1">1 {guestSuffix}</option>
               <option value="2">2 {guestSuffix}</option>
@@ -102,15 +102,15 @@ export default function QuickBookingBar() {
           </div>
 
           {/* Room Type */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#5e6962] dark:text-emerald-300/80 flex items-center gap-1.5">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-[#1b382b] dark:text-[#d8aa62] flex items-center gap-1.5">
               <Home className="w-3.5 h-3.5 text-[#b88a44]" />
               <span>{t.quickBooking.roomType}</span>
             </label>
             <select
               value={roomSlug}
               onChange={(e) => setRoomSlug(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#dfd8cb] dark:border-white/15 bg-[#f8f5ee]/50 dark:bg-black/30 text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1b382b]"
+              className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-xs sm:text-sm font-medium text-[#18221b] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#b88a44]/50"
             >
               <option value="all">{t.quickBooking.allRooms}</option>
               {fallbackRooms.map((r) => (
@@ -123,7 +123,7 @@ export default function QuickBookingBar() {
           <div className="pt-2 sm:pt-4 lg:pt-5">
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1b382b] to-[#2c5844] hover:from-[#12281e] hover:to-[#1b382b] text-white font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-3 rounded-2xl glass-btn-forest font-semibold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <Search className="w-4 h-4 text-[#d8aa62]" />
               <span>{t.quickBooking.searchBtn}</span>
